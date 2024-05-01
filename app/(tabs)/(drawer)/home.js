@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from 'react';
 import {
   NativeBaseProvider,
   Box,
@@ -8,12 +8,12 @@ import {
   Divider,
   Image,
 } from "native-base";
-import { useGlobalSearchParams } from "expo-router";
+import GlobalContext from '../../globalcontext.js';
 
-const backgroundImage = require("../../assets/images/nbb-brasil.png");
+const backgroundImage = require("../../../assets/images/nbb-brasil.png");
 
 export default function HomeScreen() {
-  const { teamName, selectedEmblem } = useGlobalSearchParams();
+  const { teamName, selectedEmblem } = useContext(GlobalContext);
 
   return (
     <NativeBaseProvider>

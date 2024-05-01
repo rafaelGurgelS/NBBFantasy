@@ -11,6 +11,7 @@ import {
   Box,
   Divider,
   useToast,
+  HStack
 } from "native-base";
 import { useRouter } from "expo-router";
 
@@ -88,12 +89,14 @@ export default function Home() {
 
         <Box position="absolute" bottom={5} width="100%">
           <Divider borderWidth={1} borderColor="#FC9904" marginBottom={2} />
-          <Text color="#A99797" textAlign="center">
-            {" "}
-            <Link href="/signup" color="blue.500">
-              Não tem conta? Registre-se!
-            </Link>
-          </Text>
+          <HStack justifyContent="center" alignItems="center">
+            <Text mr={1} color="#A99797" textAlign="center">
+              {"Não tem conta?"}
+            </Text>
+            <Link href="/signup" _text={{ color: "blue.500" }}>
+                Registre-se!
+              </Link>
+          </HStack>
         </Box>
       </Center>
     </NativeBaseProvider>
