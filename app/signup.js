@@ -12,12 +12,13 @@ import {
   useToast,
   HStack
 } from "native-base";
-import { useRouter ,Link} from "expo-router";
+import { useRouter } from "expo-router";
 
 export default function Home() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [senha2, setSenha2] = useState("");
   const toast = useToast();
 
   const handleLogin = () => {
@@ -30,7 +31,19 @@ export default function Home() {
         duration: 3000,
         isClosable: true,
       });
-    } else {
+    } 
+    
+    else if(senha!=senha2){
+        toast.show({
+            title: "Erro",
+            description: "Senhas não correspondem",
+            status: "warning",
+            duration: 3000,
+            isClosable: true,
+          });
+    }
+    
+    else {
       // Se os campos não estiverem vazios, navega para a próxima tela
       router.push("/criarTime"); // Muda o caminho para a rota da tela desejada
     }
@@ -41,8 +54,11 @@ export default function Home() {
       <Center flex={1}>
         <VStack width="90%" space={4} alignItems="center" mt={-160}>
           <Heading size="xl" mb={10}>
-            NBB FANTASY
+            CRIE SUA CONTA
           </Heading>
+
+          <Text> Insira seu e-mail:</Text>
+
 
           <Input
             placeholder="E-mail"
@@ -56,6 +72,9 @@ export default function Home() {
             onChangeText={(text) => setEmail(text)}
           />
 
+          <Text> Insira uma senha:</Text>
+
+
           <Input
             placeholder="Senha"
             variant="filled"
@@ -68,6 +87,27 @@ export default function Home() {
             value={senha}
             onChangeText={(text) => setSenha(text)}
           />
+
+            <Text>Senhas de no mínimo 8 caracteres</Text>
+
+
+            <Text>Repita a senha:</Text>
+
+
+            <Input
+            placeholder="Senha"
+            variant="filled"
+            width="100%"
+            backgroundColor="#D9D9D9"
+            borderRadius="full"
+            height={60}
+            fontSize={16}
+            secureTextEntry
+            value={senha2}
+            onChangeText={(text) => setSenha2(text)}
+            />  
+
+
 
           <Button
             width="100%"
@@ -86,17 +126,7 @@ export default function Home() {
           </Button>
         </VStack>
 
-        <Box position="absolute" bottom={5} width="100%">
-          <Divider borderWidth={1} borderColor="#FC9904" marginBottom={2} />
-          <HStack justifyContent="center" alignItems="center">
-            <Text mr={1} color="#A99797" textAlign="center">
-              {"Não tem conta?"}
-            </Text>
-            <Link href="/signup" _text={{ color: "blue.500" }}>
-                Registre-se!
-            </Link>
-          </HStack>
-        </Box>
+        
       </Center>
     </NativeBaseProvider>
   );
