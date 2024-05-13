@@ -42,7 +42,15 @@ export default function Home() {
             isClosable: true,
           });
     }
-    
+    else if(senha==senha2 && senha.length<8){
+      toast.show({
+        title: "Erro",
+        description: "Mínimo 8 caracteres",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
     else {
       // Se os campos não estiverem vazios, navega para a próxima tela
       router.push("/criarTime"); // Muda o caminho para a rota da tela desejada
