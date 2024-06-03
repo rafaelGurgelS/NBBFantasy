@@ -1,7 +1,7 @@
 import React from 'react';
 import { NativeBaseProvider, VStack, Heading, Box } from 'native-base';
 
-export default function EscalacaoScreen() {
+export default function PremiumScreen() {
   return (
     <NativeBaseProvider>
 
@@ -13,7 +13,7 @@ export default function EscalacaoScreen() {
       <VStack flex={1} justifyContent="center" alignItems="center">
         {/* Título no topo */}
         <Heading size="xl" mb={10}>
-          ESCALAÇÃO
+          VERSÃO PREMIUM
         </Heading>
 
         {/* Bloco laranja com bordas arredondadas */}
