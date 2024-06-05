@@ -1,5 +1,11 @@
 import React from 'react';
-import { NativeBaseProvider, VStack, Heading, Box } from 'native-base';
+import { NativeBaseProvider, VStack, Heading, Box, FlatList, Text } from 'native-base';
+
+const data = Array.from({ length: 10 }, (_, index) => ({
+  position: index + 1,
+  name: `User ${index + 1}`,
+  points: Math.floor(Math.random() * 100) + 1, // Pontos aleatórios entre 1 e 100
+}));
 
 export default function RankingScreen() {
   return (
@@ -18,8 +24,20 @@ export default function RankingScreen() {
           opacity={0.9}
           width="75%" // Largura ajustável
           height="50%" // Altura ajustável
+          p={4} // Padding interno
         >
-          {/* Conteúdo do bloco laranja (por enquanto vazio) */}
+          {/* FlatList para exibir os dados */}
+          <FlatList
+            data={data}
+            renderItem={({ item }) => (
+              <Box flexDirection="row" justifyContent="space-between" mb={2}>
+                <Text>{item.position}</Text>
+                <Text>{item.name}</Text>
+                <Text>{item.points} pts</Text>
+              </Box>
+            )}
+            keyExtractor={(item) => item.position.toString()}
+          />
         </Box>
       </VStack>
     </NativeBaseProvider>
