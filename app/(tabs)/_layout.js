@@ -1,7 +1,7 @@
 import React from 'react';
 import { NativeBaseProvider, Box } from 'native-base';
 import { Tabs } from 'expo-router';
-import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { FontAwesome, Ionicons, MaterialIcons ,MaterialCommunityIcons} from '@expo/vector-icons';
 
 // Tab Layout usando Expo Router
 export default function TabLayout() {
@@ -48,6 +48,16 @@ export default function TabLayout() {
             ),
           }}
         />
+        <Tabs.Screen
+          name="premium"
+          options={{
+            title: 'Premium',
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons name="crown" size={24} color={color} />
+            ),
+          }}
+        />
+
       </Tabs>
     </NativeBaseProvider>
   );

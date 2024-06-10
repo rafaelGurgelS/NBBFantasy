@@ -66,17 +66,7 @@ export default function TeamCreationScreen() {
           CRIE A SUA EQUIPE DE BASQUETE!
         </Heading>
 
-        <Input
-          placeholder="Nome do time"
-          variant="filled"
-          width="100%"
-          backgroundColor="#D9D9D9"
-          borderRadius="full"
-          height={60}
-          fontSize={16}
-          value={localTeamName}
-          onChangeText={setLocalTeamName}
-        />
+        
 
         <Text fontSize={20} textAlign="center" mt={10}>
           Escolha um emblema:
@@ -102,6 +92,20 @@ export default function TeamCreationScreen() {
           )}
           keyExtractor={(item) => item.id}
         />
+
+        <Input
+          placeholder="Nome do time"
+          variant="filled"
+          width="100%"
+          backgroundColor="#D9D9D9"
+          borderRadius="full"
+          height={60}
+          fontSize={16}
+          value={localTeamName}
+          onChangeText={setLocalTeamName}
+        />
+
+
 
         <Button
           width="100%"

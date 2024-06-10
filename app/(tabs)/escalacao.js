@@ -1,5 +1,5 @@
 import React from 'react';
-import { NativeBaseProvider, VStack, Heading, Box } from 'native-base';
+import { NativeBaseProvider, VStack, HStack, Heading, Box, Button } from 'native-base';
 
 export default function EscalacaoScreen() {
   return (
@@ -18,8 +18,54 @@ export default function EscalacaoScreen() {
           opacity={0.9}
           width="75%" // Largura ajustável
           height="50%" // Altura ajustável
+          justifyContent="center"
+          alignItems="center"
         >
-          {/* Conteúdo do bloco laranja (por enquanto vazio) */}
+          {/* Container para os botões */}
+          <VStack flex={1}  alignItems="center" py={4}>
+            {/* Linha superior */}
+            <HStack space={6}>
+              <Button
+                size="lg"
+                borderRadius="full"
+                backgroundColor="white"
+                width={16}
+                height={16}
+              />
+              <Button
+                size="lg"
+                borderRadius="full"
+                backgroundColor="white"
+                width={16}
+                height={16}
+              />
+              <Button
+                size="lg"
+                borderRadius="full"
+                backgroundColor="white"
+                width={16}
+                height={16}
+              />
+            </HStack>
+
+            {/* Linha inferior */}
+            <HStack space={10} mt={6}>
+              <Button
+                size="lg"
+                borderRadius="full"
+                backgroundColor="white"
+                width={16}
+                height={16}
+              />
+              <Button
+                size="lg"
+                borderRadius="full"
+                backgroundColor="white"
+                width={16}
+                height={16}
+              />
+            </HStack>
+          </VStack>
         </Box>
       </VStack>
     </NativeBaseProvider>
