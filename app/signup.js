@@ -16,13 +16,13 @@ import { useRouter } from "expo-router";
 
 export default function Home() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [userName, setuserName] = useState("");
   const [senha, setSenha] = useState("");
   const [senha2, setSenha2] = useState("");
   const toast = useToast();
 
   const handleLogin = () => {
-    if (!email || !senha) {
+    if (!userName || !senha) {
       // Se qualquer campo estiver vazio, exibe uma mensagem de aviso
       toast.show({
         title: "Erro",
@@ -65,19 +65,19 @@ export default function Home() {
             CRIE SUA CONTA
           </Heading>
 
-          <Text> Insira seu e-mail:</Text>
+          <Text> Insira seu nome de usuário:</Text>
 
 
           <Input
-            placeholder="E-mail"
+            placeholder="Nome de usuário"
             variant="filled"
             width="100%"
             backgroundColor="#D9D9D9"
             borderRadius="full"
             height={60}
             fontSize={16}
-            value={email}
-            onChangeText={(text) => setEmail(text)}
+            value={userName}
+            onChangeText={(text) => setuserName(text)}
           />
 
           <Text> Insira uma senha:</Text>
