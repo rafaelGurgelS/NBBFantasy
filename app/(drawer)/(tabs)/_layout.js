@@ -9,19 +9,18 @@ export default function TabLayout() {
     <NativeBaseProvider>
       <Tabs
         screenOptions={{ tabBarActiveTintColor: '#FC9904', 
-        headerTitleAlign: 'center',
-        headerStyle: {
-          borderBottomWidth: 2, // Espessura da linha
-          borderBottomColor: '#FC9904', // Cor laranja para a linha
-        },
-       }}
-        initialRouteName="(drawer)"
+          headerTitleAlign: 'center',
+          headerStyle: {
+            borderBottomWidth: 2, // Espessura da linha
+            borderBottomColor: '#FC9904', // Cor laranja para a linha
+          },
+         }}
+        initialRouteName="(home)"
       >
         <Tabs.Screen
-          name="(drawer)"
+          name="home"
           options={{
-            headerShown: false,
-            title: 'Home',
+            title: "Home",
             tabBarIcon: ({ color }) => <Ionicons name="home-outline" color={color} size={24} />,
           }}
         />

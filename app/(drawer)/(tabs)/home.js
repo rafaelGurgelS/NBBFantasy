@@ -6,9 +6,9 @@ import {
   Heading,
   Button,
   Divider,
-  Image,
+  Image, 
 } from "native-base";
-import GlobalContext from '../../globalcontext.js';
+import GlobalContext from '../../globalcontext';
 
 const backgroundImage = require("../../../assets/images/nbb-brasil.png");
 

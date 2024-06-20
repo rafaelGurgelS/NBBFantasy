@@ -55,7 +55,7 @@ export default function TeamCreationScreen() {
       setSelectedEmblem(localSelectedEmblem);
 
       // Navega para a tela Home
-      router.push('/(tabs)/(drawer)/home');
+      router.push('/(drawer)/(tabs)/home');
     }
   };
 
