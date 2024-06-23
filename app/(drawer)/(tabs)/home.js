@@ -31,7 +31,8 @@ export default function HomeScreen() {
         {/* Caixa laranja para informações do time */}
         <Box
           mt={-10}
-          backgroundColor="#FFA500"
+          backgroundColor='orange.400'   //orange 400
+          //color='green.600'
           borderRadius={10} 
           opacity={0.9}
           width="75%"

@@ -11,14 +11,11 @@ export default function RankingScreen() {
   return (
     <NativeBaseProvider>
       <VStack flex={1} justifyContent="center" alignItems="center">
-        {/* Título no topo */}
-        <Heading size="xl" mb={10}>
-          RANKING
-        </Heading>
+       
 
         {/* Bloco laranja com bordas arredondadas */}
         <Box
-          mt={-10}
+          mt={-40}
           backgroundColor="#FFA500" // Cor laranja
           borderRadius={10} // Borda arredondada
           opacity={0.9}
