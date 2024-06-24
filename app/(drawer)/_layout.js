@@ -61,6 +61,7 @@ export default function DrawerLayout() {
         options={{
           drawerLabel: 'Minha Conta',
           drawerActiveBackgroundColor: '#FC9904',
+          headerShown: false,
         }}
       />
       <Drawer.Screen
@@ -68,6 +69,7 @@ export default function DrawerLayout() {
         options={{
           drawerLabel: 'Meu Time',
           drawerActiveBackgroundColor: '#FC9904',
+          headerShown: false
         }}
       />
     </Drawer>
