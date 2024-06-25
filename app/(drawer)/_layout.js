@@ -5,7 +5,7 @@ import { useNavigationState } from '@react-navigation/native';
 const routeTitles = {
   home: 'Home',
   escalacao: 'Escalação',
-  ranking: 'Ranking',
+  '(tabsLigas)': 'Minhas ligas',
   partidas: 'Partidas',
   premium: 'Premium',
   conta: 'Minha Conta',

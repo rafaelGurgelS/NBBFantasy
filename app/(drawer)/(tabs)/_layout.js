@@ -28,7 +28,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="ranking"
+          name="(tabsLigas)"
           options={{
             title: 'Ligas',
             tabBarIcon: ({ color }) => <Ionicons name="trophy-outline" color={color} size={24} />,
