@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NativeBaseProvider, VStack, Heading, Box, FlatList, Text, HStack, IconButton, Icon } from 'native-base';
+import { NativeBaseProvider, VStack, Heading, Box, FlatList, Text, HStack, IconButton,Button, Icon } from 'native-base';
 import { MaterialIcons } from '@expo/vector-icons';
 
 // Sample match data
@@ -35,14 +35,25 @@ export default function PartidasScreen() {
   return (
     <NativeBaseProvider>
       <VStack flex={1} justifyContent="center" alignItems="center">
-        {/* Título no topo */}
-        <Heading size="xl" mb={10}>
-          PARTIDAS
-        </Heading>
+        {/* Bloco vermelho com ícone de relógio e texto */}
+        <Box
+          backgroundColor="red.500"
+          borderRadius={10} // Borda arredondada
+          width="80%" // Largura ajustável
+          height={50} // Altura ajustável
+          justifyContent="center"
+          alignItems="center"
+          mb={4} // Margem inferior para separação
+        >
+          <HStack alignItems="center" space={2}>
+            <Icon as={MaterialIcons} name="access-time" color="white" size="sm" />
+            <Text color="white" fontSize="md">Tempo restante:03:40</Text>
+          </HStack>
+        </Box>
 
         {/* Bloco laranja com bordas arredondadas */}
         <Box
-          mt={-10}
+          mt={20}
           backgroundColor="#FFA500" // Cor laranja
           borderRadius={10} // Borda arredondada
           opacity={0.9}
@@ -74,6 +85,24 @@ export default function PartidasScreen() {
               isDisabled={page === Math.ceil(matches.length / itemsPerPage) - 1}
             />
           </HStack>
+          
+          <Button
+            width="100%"
+            colorScheme='success'
+            borderRadius="full"
+            height={60}
+            size="lg"
+            justifyContent="center"
+            alignItems="center"
+            paddingTop={3}
+           
+          >
+            <Text  fontSize={16}>
+              Rodada atual
+            </Text>
+          </Button>    
+
+
         </Box>
       </VStack>
     </NativeBaseProvider>

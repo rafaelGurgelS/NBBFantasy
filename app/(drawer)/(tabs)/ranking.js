@@ -1,45 +1,115 @@
 import React from 'react';
-import { NativeBaseProvider, VStack, Heading, Box, FlatList, Text } from 'native-base';
 
-const data = Array.from({ length: 10 }, (_, index) => ({
-  position: index + 1,
-  name: `User ${index + 1}`,
-  points: Math.floor(Math.random() * 100) + 1, // Pontos aleatórios entre 1 e 100
-}));
+import { NavigationContainer } from '@react-navigation/native';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { FontAwesome, Ionicons, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Pressable,NativeBaseProvider,FlatList, Box, HStack, Text, IconButton, Icon, VStack, Button } from 'native-base';
 
-export default function RankingScreen() {
+
+// Suas telas de exemplo
+function Leagues() {
+
+  const leagues = [
+    { id: '1', name: 'Liga A' },
+    { id: '2', name: 'Liga B' },
+    { id: '3', name: 'Liga C' },
+  ];
+
+  const handlePress = (league) => {
+    console.log(`Clicked on ${league.name}`);
+    // Aqui você pode adicionar a lógica para navegar ou realizar qualquer ação
+  };
+
+
+
   return (
     <NativeBaseProvider>
-      <VStack flex={1} justifyContent="center" alignItems="center">
-        {/* Título no topo */}
-        <Heading size="xl" mb={10}>
-          RANKING
-        </Heading>
-
-        {/* Bloco laranja com bordas arredondadas */}
-        <Box
-          mt={-10}
-          backgroundColor="#FFA500" // Cor laranja
-          borderRadius={10} // Borda arredondada
-          opacity={0.9}
-          width="75%" // Largura ajustável
-          height="50%" // Altura ajustável
-          p={4} // Padding interno
-        >
-          {/* FlatList para exibir os dados */}
-          <FlatList
-            data={data}
-            renderItem={({ item }) => (
-              <Box flexDirection="row" justifyContent="space-between" mb={2}>
-                <Text>{item.position}</Text>
-                <Text>{item.name}</Text>
-                <Text>{item.points} pts</Text>
+        <VStack flex={1} p={4} justifyContent="center" alignItems="center">
+        <FlatList
+          data={leagues}
+          renderItem={({ item }) => (
+            <Pressable onPress={() => handlePress(item)}>
+              <Box
+                key={item.id}
+                py={2}
+                px={4}
+                my={2}
+                bg="gray.100"
+                borderRadius="md"
+                w="90%"
+              >
+                <HStack justifyContent="space-between" alignItems="center">
+                  <Text>{item.name}</Text>
+                  <Icon as={FontAwesome} name="trophy" size="sm" color="black" />
+                </HStack>
               </Box>
-            )}
-            keyExtractor={(item) => item.position.toString()}
-          />
-        </Box>
+            </Pressable>
+          )}
+          keyExtractor={(item) => item.id}
+        />
+        <Button
+          mt={4}
+          colorScheme="green"
+          borderRadius="full"
+          startIcon={<Icon as={FontAwesome} name="plus" />}
+        >
+          Add League
+        </Button>
       </VStack>
+    </NativeBaseProvider>
+
+
+
+
+  ); // substitua pelo conteúdo da tela Home
+}
+
+function Friends() {
+  return(
+    <NativeBaseProvider>
+      
+    </NativeBaseProvider>
+
+
+
+
+  ); // substitua pelo conteúdo da tela Home
+}
+const Tab = createMaterialTopTabNavigator();
+
+export default function TabLayout() {
+  return (
+    <NativeBaseProvider>
+    
+        <Tab.Navigator
+          screenOptions={{
+            tabBarActiveTintColor: '#FC9904',
+            tabBarIndicatorStyle: { backgroundColor: '#FC9904' },
+            tabBarStyle: { backgroundColor: 'white' },
+          }}
+          initialRouteName="Leagues"
+        >
+          <Tab.Screen
+            name="Minhas ligas"
+            component={Leagues}
+            options={{
+              title: 'Minhas ligas',
+              //tabBarIcon: ({ color }) => <Ionicons name="home-outline" color={color} size={24} />,
+            }}
+          />
+          <Tab.Screen
+            name="Meus amigos"
+            component={Friends}
+            options={{
+              title: 'Meus amigos',
+              //tabBarIcon: ({ color }) => <FontAwesome name="user-plus" size={24} color={color} />,
+            }}
+          />
+          
+         
+          
+        </Tab.Navigator>
+    
     </NativeBaseProvider>
   );
 }
