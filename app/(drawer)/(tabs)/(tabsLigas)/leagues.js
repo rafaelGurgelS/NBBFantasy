@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, Pressable } from 'react-native';
+import { FlatList, TouchableOpacity } from 'react-native';
 import { NativeBaseProvider, Box, HStack, Text, Icon, VStack, Button } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
 
@@ -11,42 +11,43 @@ const Leagues = () => {
   ];
 
   const handlePress = (league) => {
-    console.log(`Clicked on ${league.name}`);
+    //console.log(`Clicked on ${league.name}`);
     // Aqui você pode adicionar a lógica para navegar ou realizar qualquer ação
   };
 
   return (
     <NativeBaseProvider>
-      <VStack flex={1} p={4} justifyContent="center" alignItems="center">
+      <VStack  p={4} justifyContent="center" alignItems="center">
         <FlatList
           data={leagues}
           renderItem={({ item }) => (
-            <Pressable onPress={() => handlePress(item)}>
+            <TouchableOpacity onPress={() => handlePress(item)}>
               <Box
                 key={item.id}
-                py={2}
-                px={4}
-                my={2}
                 bg="gray.100"
+                padding={5}
+                backgroundColor= "gray.300"
                 borderRadius="md"
-                w="90%"
+                w="100%"
+                mb={2} // Adicione uma margem inferior para separar os itens
               >
                 <HStack justifyContent="space-between" alignItems="center">
+                  <Icon as={FontAwesome} name="trophy" size={10}  color="black" />
                   <Text>{item.name}</Text>
-                  <Icon as={FontAwesome} name="trophy" size="sm" color="black" />
                 </HStack>
               </Box>
-            </Pressable>
+            </TouchableOpacity>
           )}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: 0 }} // Adicione padding inferior para espaço adicional
         />
         <Button
-          mt={4}
+          //mt={} // Adicione uma margem superior para separar do FlatList
           colorScheme="green"
           borderRadius="full"
           startIcon={<Icon as={FontAwesome} name="plus" />}
         >
-          Add League
+          
         </Button>
       </VStack>
     </NativeBaseProvider>

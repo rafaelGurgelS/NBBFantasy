@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { NativeBaseProvider, VStack, HStack, Heading, Box, Button, Text, Actionsheet, useDisclose } from 'native-base';
+import { NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
 
 export default function EscalacaoScreen() {
-  const userMoney = 1000; // Exemplo de valor de dinheiro do usuário
+  const [userMoney, setUserMoney] = useState(1000); // Estado para o dinheiro do usuário
   const { isOpen, onOpen, onClose } = useDisclose();
 
   const jogadores = [
@@ -12,6 +12,15 @@ export default function EscalacaoScreen() {
     { nome: 'Jogador 3', pontuacao: 60, valor: 120, time: 'Time C', posicao: 'Defensor' },
     // Adicione mais jogadores conforme necessário
   ];
+
+  const buyPlayer = (valor) => {
+    if (userMoney >= valor) {
+      setUserMoney(userMoney - valor); // Subtrai o valor do jogador do dinheiro do usuário
+      alert('Jogador comprado com sucesso!');
+    } else {
+      alert('Dinheiro insuficiente para comprar este jogador.');
+    }
+  };
 
   return (
     <NativeBaseProvider>
@@ -25,7 +34,7 @@ export default function EscalacaoScreen() {
           borderRadius={10}
           p={2}
         >
-          <Text color="white" fontWeight="bold"> R${userMoney}</Text>
+          <Text color="white" fontWeight="bold">R${userMoney}</Text>
         </Box>
         
         {/* Bloco laranja com bordas arredondadas */}
@@ -109,7 +118,7 @@ export default function EscalacaoScreen() {
                   <Text>Time: {jogador.time}</Text>
                   <Text>Posição: {jogador.posicao}</Text>
                 </VStack>
-                <Button onPress={() => alert(`Comprado: ${jogador.nome}`)}>Comprar</Button>
+                <Button onPress={() => buyPlayer(jogador.valor)}>Comprar</Button>
               </HStack>
             ))}
           </Actionsheet.Content>

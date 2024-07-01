@@ -17,12 +17,12 @@ export default function TabLayout() {
         }}
       >
         <Tab.Screen
-          name="MinhasLigas"
+          name="Minhas Ligas"
           component={Leagues}
           options={{ title: 'Minhas Ligas' }}
         />
         <Tab.Screen
-          name="MeusAmigos"
+          name="Meus Amigos"
           component={Friends}
           options={{ title: 'Meus Amigos' }}
         />
