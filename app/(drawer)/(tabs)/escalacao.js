@@ -128,7 +128,8 @@ export default function EscalacaoScreen() {
                   onPress={() => selectPosition('pos1')}
                   mb={2}
                 />
-                {comprados.pos1 && <Text>{comprados.pos1.nome}</Text>}
+                {comprados.pos1 && <Text style={{fontWeight: 'bold', fontSize: 14 }} >
+                  {comprados.pos1.nome}</Text>}
               </VStack>
               <VStack alignItems="center">
                 <Button
@@ -142,7 +143,11 @@ export default function EscalacaoScreen() {
                   mb={2}
                   style={{top: -40}}
                 />
-                {comprados.pos2 && <Text>{comprados.pos2.nome}</Text>}
+                {comprados.pos2 && (
+                  <Text textAlign="center" style={{ marginTop: -40, fontWeight: 'bold', fontSize: 14 }}>
+                    {comprados.pos2.nome}
+                  </Text>
+                )}
               </VStack>
               <VStack alignItems="center">
                 <Button
@@ -155,7 +160,8 @@ export default function EscalacaoScreen() {
                   onPress={() => selectPosition('pos3')}
                   mb={2}
                 />
-                {comprados.pos3 && <Text>{comprados.pos3.nome}</Text>}
+                {comprados.pos3 && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
+                  {comprados.pos3.nome}</Text>}
               </VStack>
             </HStack>
 
@@ -172,7 +178,8 @@ export default function EscalacaoScreen() {
                   onPress={() => selectPosition('pos4')}
                   mb={2}
                 />
-                {comprados.pos4 && <Text>{comprados.pos4.nome}</Text>}
+                {comprados.pos4 && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
+                  {comprados.pos4.nome}</Text>}
               </VStack>
               <VStack alignItems="center">
                 <Button
@@ -185,7 +192,8 @@ export default function EscalacaoScreen() {
                   onPress={() => selectPosition('pos5')}
                   mb={2}
                 />
-                {comprados.pos5 && <Text>{comprados.pos5.nome}</Text>}
+                {comprados.pos5 && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
+                  {comprados.pos5.nome}</Text>}
               </VStack>
             </HStack>
           </VStack>
