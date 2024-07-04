@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image } from 'native-base';
+import { ScrollView, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
 
 export default function EscalacaoScreen() {
@@ -202,19 +202,21 @@ export default function EscalacaoScreen() {
         {/* Modal com lista de jogadores */}
         <Actionsheet isOpen={isOpen} onClose={onClose}>
           <Actionsheet.Content>
-            <Text fontSize="xl" mb={4}>Selecione um jogador</Text>
-            {disponiveis.map((jogador, index) => (
-              <HStack key={index} justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
-                <VStack>
-                  <Text bold>{jogador.nome}</Text>
-                  <Text>Pontuação: {jogador.pontuacao}</Text>
-                  <Text>Valor: R${jogador.valor}</Text>
-                  <Text>Time: {jogador.time}</Text>
-                  <Text>Posição: {jogador.posicao}</Text>
-                </VStack>
-                <Button onPress={() => buyPlayer(jogador)}>Comprar</Button>
-              </HStack>
-            ))}
+            <Text fontSize="xl" mb={4}>Posição (tipo pivô, ala...)</Text>
+            <ScrollView w="100%">
+              {disponiveis.map((jogador, index) => (
+                <HStack key={index} justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
+                  <VStack>
+                    <Text bold>{jogador.nome}</Text>
+                    <Text>Pontuação: {jogador.pontuacao}</Text>
+                    <Text>Valor: R${jogador.valor}</Text>
+                    <Text>Time: {jogador.time}</Text>
+                    <Text>Posição: {jogador.posicao}</Text>
+                  </VStack>
+                  <Button onPress={() => buyPlayer(jogador)}>Comprar</Button>
+                </HStack>
+              ))}
+            </ScrollView>
           </Actionsheet.Content>
         </Actionsheet>
       </VStack>
