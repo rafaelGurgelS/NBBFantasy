@@ -1,26 +1,60 @@
 import React, { useState } from 'react';
 import { ScrollView, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
+//bug: uma vez que a escalaçao fica completa, e se eu cancelar, ele nao consegue 
+//ver q ta incompleta
+
 
 export default function EscalacaoScreen() {
   const [userMoney, setUserMoney] = useState(1000); // Estado para o dinheiro do usuário
   const { isOpen, onOpen, onClose } = useDisclose();
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [comprados, setComprados] = useState({
-    pos1: null,
-    pos2: null,
-    pos3: null,
-    pos4: null,
-    pos5: null
+    ala_armador: null,
+    armador: null,
+    pivo: null,
+    ala_pivo: null,
+    ala: null
   });
-  const [disponiveis, setDisponiveis] = useState([
-    { nome: 'Jogador 1', pontuacao: 50, valor: 100, time: 'Time A', posicao: 'Atacante' },
-    { nome: 'Jogador 2', pontuacao: 70, valor: 150, time: 'Time B', posicao: 'Meio-campo' },
-    { nome: 'Jogador 3', pontuacao: 60, valor: 120, time: 'Time C', posicao: 'Defensor' },
-    { nome: 'Jogador 4', pontuacao: 80, valor: 180, time: 'Time D', posicao: 'Atacante' },
-    { nome: 'Jogador 5', pontuacao: 90, valor: 200, time: 'Time E', posicao: 'Meio-campo' },
-    { nome: 'Jogador 6', pontuacao: 55, valor: 110, time: 'Time F', posicao: 'Defensor' },
-  ]);
+
+  const [disponiveis, setDisponiveis] = useState({
+    'ala_armador': [
+      { nome: 'Jogador 1', pontuacao: 50, valor: 100, time: 'Time A', posicao: 'Ala armador' },
+      { nome: 'Jogador 2', pontuacao: 55, valor: 110, time: 'Time B', posicao: 'Ala armador' },
+      { nome: 'Jogador 3', pontuacao: 60, valor: 120, time: 'Time C', posicao: 'Ala armador' },
+      { nome: 'Jogador 4', pontuacao: 65, valor: 130, time: 'Time D', posicao: 'Ala armador' },
+      { nome: 'Jogador 5', pontuacao: 70, valor: 140, time: 'Time E', posicao: 'Ala armador' },
+    ],
+    'armador': [
+      { nome: 'Jogador 6', pontuacao: 50, valor: 100, time: 'Time F', posicao: 'Armador' },
+      { nome: 'Jogador 7', pontuacao: 55, valor: 110, time: 'Time G', posicao: 'Armador' },
+      { nome: 'Jogador 8', pontuacao: 60, valor: 120, time: 'Time H', posicao: 'Armador' },
+      { nome: 'Jogador 9', pontuacao: 65, valor: 130, time: 'Time I', posicao: 'Armador' },
+      { nome: 'Jogador 10', pontuacao: 70, valor: 140, time: 'Time J', posicao: 'Armador' },
+    ],
+    'pivo': [
+      { nome: 'Jogador 11', pontuacao: 50, valor: 100, time: 'Time K', posicao: 'Pivô' },
+      { nome: 'Jogador 12', pontuacao: 55, valor: 110, time: 'Time L', posicao: 'Pivô' },
+      { nome: 'Jogador 13', pontuacao: 60, valor: 120, time: 'Time M', posicao: 'Pivô' },
+      { nome: 'Jogador 14', pontuacao: 65, valor: 130, time: 'Time N', posicao: 'Pivô' },
+      { nome: 'Jogador 15', pontuacao: 70, valor: 140, time: 'Time O', posicao: 'Pivô' },
+    ],
+    'ala_pivo': [
+      { nome: 'Jogador 16', pontuacao: 50, valor: 100, time: 'Time P', posicao: 'Ala-pivô' },
+      { nome: 'Jogador 17', pontuacao: 55, valor: 110, time: 'Time Q', posicao: 'Ala-pivô' },
+      { nome: 'Jogador 18', pontuacao: 60, valor: 120, time: 'Time R', posicao: 'Ala-pivô' },
+      { nome: 'Jogador 19', pontuacao: 65, valor: 130, time: 'Time S', posicao: 'Ala-pivô' },
+      { nome: 'Jogador 20', pontuacao: 70, valor: 140, time: 'Time T', posicao: 'Ala-pivô' },
+    ],
+    'ala': [
+      { nome: 'Jogador 21', pontuacao: 50, valor: 100, time: 'Time U', posicao: 'Ala' },
+      { nome: 'Jogador 22', pontuacao: 55, valor: 110, time: 'Time V', posicao: 'Ala' },
+      { nome: 'Jogador 23', pontuacao: 60, valor: 120, time: 'Time W', posicao: 'Ala' },
+      { nome: 'Jogador 24', pontuacao: 65, valor: 130, time: 'Time X', posicao: 'Ala' },
+      { nome: 'Jogador 25', pontuacao: 70, valor: 140, time: 'Time Y', posicao: 'Ala' },
+    ],
+  }
+  );
 
   const selectPosition = (position) => {
     setSelectedPosition(position);
@@ -28,23 +62,45 @@ export default function EscalacaoScreen() {
   };
 
   const buyPlayer = (jogador) => {
-    if (userMoney >= jogador.valor) {
-      const previousPlayer = comprados[selectedPosition];
-      let newMoney = userMoney - jogador.valor;
+  if (comprados[selectedPosition]?.nome === jogador.nome) {
+    alert('Este jogador já foi comprado.');
+    return;
+  }
 
-      if (previousPlayer) {
-        newMoney += previousPlayer.valor;
-        setDisponiveis([...disponiveis, previousPlayer]);
-      }
+  if (userMoney >= jogador.valor) {
+    const previousPlayer = comprados[selectedPosition];
+    let newMoney = userMoney - jogador.valor;
 
-      setUserMoney(newMoney);
-      setComprados({ ...comprados, [selectedPosition]: jogador });
-      setDisponiveis(disponiveis.filter(j => j.nome !== jogador.nome));
-      onClose();
-    } else {
-      alert('Dinheiro insuficiente para comprar este jogador.');
+    if (previousPlayer) {
+      newMoney += previousPlayer.valor;
+      
     }
-  };
+
+    setUserMoney(newMoney);
+    setComprados({ ...comprados, [selectedPosition]: jogador });
+    
+  } else {
+    alert('Dinheiro insuficiente para comprar este jogador.');
+  }
+};
+
+const cancelPurchase = (jogador) => {
+  const newMoney = userMoney + jogador.valor;
+  setUserMoney(newMoney);
+
+  setComprados((prevComprados) => {
+    const updatedComprados = { ...prevComprados };
+    updatedComprados[selectedPosition] = null; // Define como null ao invés de deletar
+    return updatedComprados;
+  });
+
+
+
+  //setComprados(jogador);
+  
+ 
+};
+
 
   const renderButtonIcon = (position) => {
     const player = comprados[position];
@@ -124,12 +180,12 @@ export default function EscalacaoScreen() {
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('pos1')}
-                  onPress={() => selectPosition('pos1')}
+                  startIcon={renderButtonIcon('ala_armador')}
+                  onPress={() => selectPosition('ala_armador')}
                   mb={2}
                 />
-                {comprados.pos1 && <Text style={{fontWeight: 'bold', fontSize: 14 }} >
-                  {comprados.pos1.nome}</Text>}
+                {comprados.ala_armador && <Text style={{fontWeight: 'bold', fontSize: 14 }} >
+                  {comprados.ala_armador.nome}</Text>}
               </VStack>
               <VStack alignItems="center">
                 <Button
@@ -138,14 +194,14 @@ export default function EscalacaoScreen() {
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('pos2')}
-                  onPress={() => selectPosition('pos2')}
+                  startIcon={renderButtonIcon('armador')}
+                  onPress={() => selectPosition('armador')}
                   mb={2}
                   style={{top: -40}}
                 />
-                {comprados.pos2 && (
+                {comprados.armador && (
                   <Text textAlign="center" style={{ marginTop: -40, fontWeight: 'bold', fontSize: 14 }}>
-                    {comprados.pos2.nome}
+                    {comprados.armador.nome}
                   </Text>
                 )}
               </VStack>
@@ -156,12 +212,12 @@ export default function EscalacaoScreen() {
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('pos3')}
-                  onPress={() => selectPosition('pos3')}
+                  startIcon={renderButtonIcon('pivo')}
+                  onPress={() => selectPosition('pivo')}
                   mb={2}
                 />
-                {comprados.pos3 && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
-                  {comprados.pos3.nome}</Text>}
+                {comprados.pivo && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
+                  {comprados.pivo.nome}</Text>}
               </VStack>
             </HStack>
 
@@ -174,12 +230,12 @@ export default function EscalacaoScreen() {
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('pos4')}
-                  onPress={() => selectPosition('pos4')}
+                  startIcon={renderButtonIcon('ala_pivo')}
+                  onPress={() => selectPosition('ala_pivo')}
                   mb={2}
                 />
-                {comprados.pos4 && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
-                  {comprados.pos4.nome}</Text>}
+                {comprados.ala_pivo && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
+                  {comprados.ala_pivo.nome}</Text>}
               </VStack>
               <VStack alignItems="center">
                 <Button
@@ -188,12 +244,12 @@ export default function EscalacaoScreen() {
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('pos5')}
-                  onPress={() => selectPosition('pos5')}
+                  startIcon={renderButtonIcon('ala')}
+                  onPress={() => selectPosition('ala')}
                   mb={2}
                 />
-                {comprados.pos5 && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
-                  {comprados.pos5.nome}</Text>}
+                {comprados.ala && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
+                  {comprados.ala.nome}</Text>}
               </VStack>
             </HStack>
           </VStack>
@@ -202,9 +258,9 @@ export default function EscalacaoScreen() {
         {/* Modal com lista de jogadores */}
         <Actionsheet isOpen={isOpen} onClose={onClose}>
           <Actionsheet.Content>
-            <Text fontSize="xl" mb={4}>Posição (tipo pivô, ala...)</Text>
+            <Text fontSize="xl" mb={4}>Posição: {selectedPosition}</Text>
             <ScrollView w="100%">
-              {disponiveis.map((jogador, index) => (
+              {selectedPosition && disponiveis[selectedPosition]?.map((jogador, index) => (
                 <HStack key={index} justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
                   <VStack>
                     <Text bold>{jogador.nome}</Text>
@@ -213,12 +269,20 @@ export default function EscalacaoScreen() {
                     <Text>Time: {jogador.time}</Text>
                     <Text>Posição: {jogador.posicao}</Text>
                   </VStack>
-                  <Button onPress={() => buyPlayer(jogador)}>Comprar</Button>
+                  {comprados[selectedPosition]?.nome === jogador.nome ? (
+                    <HStack>
+                      <Text color="red.500">Comprado </Text>
+                      <Button colorScheme="red" onPress={() => cancelPurchase(jogador)}>Cancelar</Button>
+                    </HStack>
+                  ) : (
+                    <Button onPress={() => buyPlayer(jogador)}>Comprar</Button>
+                  )}
                 </HStack>
               ))}
             </ScrollView>
           </Actionsheet.Content>
         </Actionsheet>
+
       </VStack>
     </NativeBaseProvider>
   );
