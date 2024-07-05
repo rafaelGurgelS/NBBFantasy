@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { ScrollView, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
-//bug: uma vez que a escalaçao fica completa, e se eu cancelar, ele nao consegue 
-//ver q ta incompleta
 
 
 export default function EscalacaoScreen() {
