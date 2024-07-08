@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
 
-
-export default function EscalacaoScreen() {
-  const [userMoney, setUserMoney] = useState(1000); // Estado para o dinheiro do usuário
+const EscalacaoScreen = () => {
+  const [userMoney, setUserMoney] = useState(1000);
   const { isOpen, onOpen, onClose } = useDisclose();
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [comprados, setComprados] = useState({
@@ -14,45 +13,33 @@ export default function EscalacaoScreen() {
     ala_pivo: null,
     ala: null
   });
-
   const [disponiveis, setDisponiveis] = useState({
-    'ala_armador': [
-      { nome: 'Jogador 1', pontuacao: 50, valor: 100, time: 'Time A', posicao: 'Ala armador' },
-      { nome: 'Jogador 2', pontuacao: 55, valor: 110, time: 'Time B', posicao: 'Ala armador' },
-      { nome: 'Jogador 3', pontuacao: 60, valor: 120, time: 'Time C', posicao: 'Ala armador' },
-      { nome: 'Jogador 4', pontuacao: 65, valor: 130, time: 'Time D', posicao: 'Ala armador' },
-      { nome: 'Jogador 5', pontuacao: 70, valor: 140, time: 'Time E', posicao: 'Ala armador' },
-    ],
-    'armador': [
-      { nome: 'Jogador 6', pontuacao: 50, valor: 100, time: 'Time F', posicao: 'Armador' },
-      { nome: 'Jogador 7', pontuacao: 55, valor: 110, time: 'Time G', posicao: 'Armador' },
-      { nome: 'Jogador 8', pontuacao: 60, valor: 120, time: 'Time H', posicao: 'Armador' },
-      { nome: 'Jogador 9', pontuacao: 65, valor: 130, time: 'Time I', posicao: 'Armador' },
-      { nome: 'Jogador 10', pontuacao: 70, valor: 140, time: 'Time J', posicao: 'Armador' },
-    ],
-    'pivo': [
-      { nome: 'Jogador 11', pontuacao: 50, valor: 100, time: 'Time K', posicao: 'Pivô' },
-      { nome: 'Jogador 12', pontuacao: 55, valor: 110, time: 'Time L', posicao: 'Pivô' },
-      { nome: 'Jogador 13', pontuacao: 60, valor: 120, time: 'Time M', posicao: 'Pivô' },
-      { nome: 'Jogador 14', pontuacao: 65, valor: 130, time: 'Time N', posicao: 'Pivô' },
-      { nome: 'Jogador 15', pontuacao: 70, valor: 140, time: 'Time O', posicao: 'Pivô' },
-    ],
-    'ala_pivo': [
-      { nome: 'Jogador 16', pontuacao: 50, valor: 100, time: 'Time P', posicao: 'Ala-pivô' },
-      { nome: 'Jogador 17', pontuacao: 55, valor: 110, time: 'Time Q', posicao: 'Ala-pivô' },
-      { nome: 'Jogador 18', pontuacao: 60, valor: 120, time: 'Time R', posicao: 'Ala-pivô' },
-      { nome: 'Jogador 19', pontuacao: 65, valor: 130, time: 'Time S', posicao: 'Ala-pivô' },
-      { nome: 'Jogador 20', pontuacao: 70, valor: 140, time: 'Time T', posicao: 'Ala-pivô' },
-    ],
-    'ala': [
-      { nome: 'Jogador 21', pontuacao: 50, valor: 100, time: 'Time U', posicao: 'Ala' },
-      { nome: 'Jogador 22', pontuacao: 55, valor: 110, time: 'Time V', posicao: 'Ala' },
-      { nome: 'Jogador 23', pontuacao: 60, valor: 120, time: 'Time W', posicao: 'Ala' },
-      { nome: 'Jogador 24', pontuacao: 65, valor: 130, time: 'Time X', posicao: 'Ala' },
-      { nome: 'Jogador 25', pontuacao: 70, valor: 140, time: 'Time Y', posicao: 'Ala' },
-    ],
-  }
-  );
+    'ala_armador': [],
+    'armador': [],
+    'pivo': [],
+    'ala_pivo': [],
+    'ala': [],
+  });
+
+  useEffect(() => {
+    fetchJogadores();
+  }, []);
+
+  const fetchJogadores = async () => {
+    try {
+      const response = await fetch('http://192.168.0.171:5000/jogadores');
+      const data = await response.json();
+      setDisponiveis({
+        'ala_armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
+        'armador': data.filter(jogador => jogador.posicao === 'Armador'),
+        'pivo': data.filter(jogador => jogador.posicao === 'Pivô'),
+        'ala_pivo': data.filter(jogador => jogador.posicao === 'Ala/Pivô'),
+        'ala': data.filter(jogador => jogador.posicao === 'Ala'),
+      });
+    } catch (error) {
+      console.error('Erro ao buscar jogadores:', error);
+    }
+  };
 
   const selectPosition = (position) => {
     setSelectedPosition(position);
@@ -60,45 +47,36 @@ export default function EscalacaoScreen() {
   };
 
   const buyPlayer = (jogador) => {
-  if (comprados[selectedPosition]?.nome === jogador.nome) {
-    alert('Este jogador já foi comprado.');
-    return;
-  }
-
-  if (userMoney >= jogador.valor) {
-    const previousPlayer = comprados[selectedPosition];
-    let newMoney = userMoney - jogador.valor;
-
-    if (previousPlayer) {
-      newMoney += previousPlayer.valor;
-      
+    if (comprados[selectedPosition]?.nome === jogador.nome) {
+      alert('Este jogador já foi comprado.');
+      return;
     }
 
+    if (userMoney >= jogador.valor) {
+      const previousPlayer = comprados[selectedPosition];
+      let newMoney = userMoney - jogador.valor;
+
+      if (previousPlayer) {
+        newMoney += previousPlayer.valor;
+      }
+
+      setUserMoney(newMoney);
+      setComprados({ ...comprados, [selectedPosition]: jogador });
+    } else {
+      alert('Dinheiro insuficiente para comprar este jogador.');
+    }
+  };
+
+  const cancelPurchase = (jogador) => {
+    const newMoney = userMoney + jogador.valor;
     setUserMoney(newMoney);
-    setComprados({ ...comprados, [selectedPosition]: jogador });
-    
-  } else {
-    alert('Dinheiro insuficiente para comprar este jogador.');
-  }
-};
 
-const cancelPurchase = (jogador) => {
-  const newMoney = userMoney + jogador.valor;
-  setUserMoney(newMoney);
-
-  setComprados((prevComprados) => {
-    const updatedComprados = { ...prevComprados };
-    updatedComprados[selectedPosition] = null; // Define como null ao invés de deletar
-    return updatedComprados;
-  });
-
-
-
-  //setComprados(jogador);
-  
- 
-};
-
+    setComprados((prevComprados) => {
+      const updatedComprados = { ...prevComprados };
+      updatedComprados[selectedPosition] = null;
+      return updatedComprados;
+    });
+  };
 
   const renderButtonIcon = (position) => {
     const player = comprados[position];
@@ -114,14 +92,13 @@ const cancelPurchase = (jogador) => {
         <FontAwesome name="user-circle" size={40} color="black" />
       );
     }
-  };  
+  };
 
   const isComplete = Object.values(comprados).every(jogador => jogador !== null);
 
   return (
     <NativeBaseProvider>
       <VStack flex={1} justifyContent="center" alignItems="center">
-        {/* Caixa verde no canto superior esquerdo */}
         <Box
           position="absolute"
           top={4}
@@ -133,7 +110,6 @@ const cancelPurchase = (jogador) => {
           <Text color="white" fontWeight="bold">R${userMoney}</Text>
         </Box>
 
-        {/* Status da Escalação */}
         <Box
           position="absolute"
           top={4}
@@ -150,7 +126,6 @@ const cancelPurchase = (jogador) => {
           </HStack>
         </Box>
 
-        {/* Imagem de fundo da quadra de basquete */}
         <Box
           mt={-10}
           borderRadius={10}
@@ -167,9 +142,7 @@ const cancelPurchase = (jogador) => {
             style={{ width: '100%', height: '100%', position: 'absolute' }}
           />
 
-          {/* Container para os botões */}
           <VStack flex={1} alignItems="center" py={4} position="relative">
-            {/* Linha superior */}
             <HStack space={6} position="absolute" top="20%">
               <VStack alignItems="center">
                 <Button
@@ -219,7 +192,6 @@ const cancelPurchase = (jogador) => {
               </VStack>
             </HStack>
 
-            {/* Linha inferior */}
             <HStack space={10} position="absolute" bottom="10%">
               <VStack alignItems="center">
                 <Button
@@ -253,7 +225,6 @@ const cancelPurchase = (jogador) => {
           </VStack>
         </Box>
 
-        {/* Modal com lista de jogadores */}
         <Actionsheet isOpen={isOpen} onClose={onClose}>
           <Actionsheet.Content>
             <Text fontSize="xl" mb={4}>Posição: {selectedPosition}</Text>
@@ -284,4 +255,6 @@ const cancelPurchase = (jogador) => {
       </VStack>
     </NativeBaseProvider>
   );
-}
+};
+
+export default EscalacaoScreen;
