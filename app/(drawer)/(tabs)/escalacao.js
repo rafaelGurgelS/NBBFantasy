@@ -1,24 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image } from 'native-base';
+import {IconButton,Modal,FlatList, ScrollView, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
+
+
+
 
 const EscalacaoScreen = () => {
   const [userMoney, setUserMoney] = useState(1000);
   const { isOpen, onOpen, onClose } = useDisclose();
   const [selectedPosition, setSelectedPosition] = useState(null);
+  
   const [comprados, setComprados] = useState({
-    ala_armador: null,
-    armador: null,
-    pivo: null,
-    ala_pivo: null,
-    ala: null
+    'Ala armador': null,
+    'Armador': null,
+   'Pivô': null,
+   'Ala pivô': null,
+   'Ala': null
   });
   const [disponiveis, setDisponiveis] = useState({
-    'ala_armador': [],
-    'armador': [],
-    'pivo': [],
-    'ala_pivo': [],
-    'ala': [],
+    'Ala armador': [],
+    'Armador': [],
+    'Pivô': [],
+    'Ala pivô': [],
+    'Ala': [],
   });
 
   useEffect(() => {
@@ -27,14 +31,14 @@ const EscalacaoScreen = () => {
 
   const fetchJogadores = async () => {
     try {
-      const response = await fetch('http://192.168.0.171:5000/jogadores');
+      const response = await fetch('http://192.168.1.193:5000/jogadores');
       const data = await response.json();
       setDisponiveis({
-        'ala_armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
-        'armador': data.filter(jogador => jogador.posicao === 'Armador'),
-        'pivo': data.filter(jogador => jogador.posicao === 'Pivô'),
-        'ala_pivo': data.filter(jogador => jogador.posicao === 'Ala/Pivô'),
-        'ala': data.filter(jogador => jogador.posicao === 'Ala'),
+        'Ala armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
+        'Armador': data.filter(jogador => jogador.posicao === 'Armador'),
+        'Pivô': data.filter(jogador => jogador.posicao === 'Pivô'),
+        'Ala pivô': data.filter(jogador => jogador.posicao === 'Ala/Pivô'),
+        'Ala': data.filter(jogador => jogador.posicao === 'Ala'),
       });
     } catch (error) {
       console.error('Erro ao buscar jogadores:', error);
@@ -43,11 +47,13 @@ const EscalacaoScreen = () => {
 
   const selectPosition = (position) => {
     setSelectedPosition(position);
+    
     onOpen();
+   
   };
 
   const buyPlayer = (jogador) => {
-    if (comprados[selectedPosition]?.nome === jogador.nome) {
+    if (comprados[selectedPosition]?.key === jogador.key) {
       alert('Este jogador já foi comprado.');
       return;
     }
@@ -62,12 +68,14 @@ const EscalacaoScreen = () => {
 
       setUserMoney(newMoney);
       setComprados({ ...comprados, [selectedPosition]: jogador });
+      onClose();
     } else {
       alert('Dinheiro insuficiente para comprar este jogador.');
     }
   };
 
   const cancelPurchase = (jogador) => {
+    
     const newMoney = userMoney + jogador.valor;
     setUserMoney(newMoney);
 
@@ -76,6 +84,9 @@ const EscalacaoScreen = () => {
       updatedComprados[selectedPosition] = null;
       return updatedComprados;
     });
+
+    
+
   };
 
   const renderButtonIcon = (position) => {
@@ -151,12 +162,12 @@ const EscalacaoScreen = () => {
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('ala_armador')}
-                  onPress={() => selectPosition('ala_armador')}
+                  startIcon={renderButtonIcon('Ala armador')}
+                  onPress={() => selectPosition('Ala armador')}
                   mb={2}
                 />
-                {comprados.ala_armador && <Text style={{fontWeight: 'bold', fontSize: 14 }} >
-                  {comprados.ala_armador.nome}</Text>}
+                {comprados['Ala armador'] && <Text style={{fontWeight: 'bold', fontSize: 14 }} >
+                  {comprados['Ala armador'].nome}</Text>}
               </VStack>
               <VStack alignItems="center">
                 <Button
@@ -165,14 +176,14 @@ const EscalacaoScreen = () => {
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('armador')}
-                  onPress={() => selectPosition('armador')}
+                  startIcon={renderButtonIcon('Armador')}
+                  onPress={() => selectPosition('Armador')}
                   mb={2}
                   style={{top: -40}}
                 />
-                {comprados.armador && (
+                {comprados['Armador'] && (
                   <Text textAlign="center" style={{ marginTop: -40, fontWeight: 'bold', fontSize: 14 }}>
-                    {comprados.armador.nome}
+                    {comprados['Armador'].nome}
                   </Text>
                 )}
               </VStack>
@@ -183,12 +194,12 @@ const EscalacaoScreen = () => {
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('pivo')}
-                  onPress={() => selectPosition('pivo')}
+                  startIcon={renderButtonIcon('Pivô')}
+                  onPress={() => selectPosition('Pivô')}
                   mb={2}
                 />
-                {comprados.pivo && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
-                  {comprados.pivo.nome}</Text>}
+                {comprados['Pivô'] && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
+                  {comprados['Pivô'].nome}</Text>}
               </VStack>
             </HStack>
 
@@ -200,12 +211,12 @@ const EscalacaoScreen = () => {
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('ala_pivo')}
-                  onPress={() => selectPosition('ala_pivo')}
+                  startIcon={renderButtonIcon('Ala pivô')}
+                  onPress={() => selectPosition('Ala pivô')}
                   mb={2}
                 />
-                {comprados.ala_pivo && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
-                  {comprados.ala_pivo.nome}</Text>}
+                {comprados['Ala pivô'] && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
+                  {comprados['Ala pivô'].nome}</Text>}
               </VStack>
               <VStack alignItems="center">
                 <Button
@@ -214,12 +225,12 @@ const EscalacaoScreen = () => {
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('ala')}
-                  onPress={() => selectPosition('ala')}
+                  startIcon={renderButtonIcon('Ala')}
+                  onPress={() => selectPosition('Ala')}
                   mb={2}
                 />
-                {comprados.ala && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
-                  {comprados.ala.nome}</Text>}
+                {comprados['Ala'] && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
+                  {comprados['Ala'].nome}</Text>}
               </VStack>
             </HStack>
           </VStack>
@@ -227,28 +238,36 @@ const EscalacaoScreen = () => {
 
         <Actionsheet isOpen={isOpen} onClose={onClose}>
           <Actionsheet.Content>
+            <IconButton
+              icon={<FontAwesome name="times" size={24} color="black" />}
+              variant="unstyled"
+              alignSelf="flex-end"
+              onPress={onClose}
+            />
             <Text fontSize="xl" mb={4}>Posição: {selectedPosition}</Text>
-            <ScrollView w="100%">
-              {selectedPosition && disponiveis[selectedPosition]?.map((jogador, index) => (
-                <HStack key={index} justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
+            <FlatList
+              data={selectedPosition ? disponiveis[selectedPosition] : []}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
                   <VStack>
-                    <Text bold>{jogador.nome}</Text>
-                    <Text>Pontuação: {jogador.pontuacao}</Text>
-                    <Text>Valor: R${jogador.valor}</Text>
-                    <Text>Time: {jogador.time}</Text>
-                    <Text>Posição: {jogador.posicao}</Text>
+                    <Text bold>{item.nome}</Text>
+                    <Text>Pontuação: {item.pontuacao}</Text>
+                    <Text>Valor: R${item.valor}</Text>
+                    <Text>Time: {item.time}</Text>
+                    <Text>Posição: {item.posicao}</Text>
                   </VStack>
-                  {comprados[selectedPosition]?.nome === jogador.nome ? (
+                  {comprados[selectedPosition]?.key === item.key ? (
                     <HStack>
                       <Text color="red.500">Comprado </Text>
-                      <Button colorScheme="red" onPress={() => cancelPurchase(jogador)}>Cancelar</Button>
+                      <Button colorScheme="red" onPress={() => cancelPurchase(item)}>Cancelar</Button>
                     </HStack>
                   ) : (
-                    <Button onPress={() => buyPlayer(jogador)}>Comprar</Button>
+                    <Button onPress={() => buyPlayer(item)}>Comprar</Button>
                   )}
                 </HStack>
-              ))}
-            </ScrollView>
+              )}
+            />
           </Actionsheet.Content>
         </Actionsheet>
 

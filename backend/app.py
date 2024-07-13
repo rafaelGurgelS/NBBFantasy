@@ -14,6 +14,7 @@ def get_jogadores():
             reader = csv.DictReader(csvfile)
             for row in reader:
                 jogador = {
+                    'key' : row['key'],
                     'nome': row['Jogador'],
                     'pontuacao': float(row['PTS']),
                     'valor': float(row['PTS']),
