@@ -235,7 +235,7 @@ const EscalacaoScreen = () => {
               </VStack>
             </HStack>
 
-            <HStack space={10} position="absolute" bottom="10%">
+            <HStack space={10} position="absolute" bottom="15%">
               <VStack alignItems="center">
                 <Button
                   size="lg"
