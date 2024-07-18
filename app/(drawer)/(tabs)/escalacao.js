@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import {IconButton,Modal,FlatList, ScrollView, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image } from 'native-base';
+import {View, IconButton,Modal,FlatList, ScrollView, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
-
-
+import { ActivityIndicator } from 'react-native-paper';
 
 
 const EscalacaoScreen = () => {
@@ -31,7 +30,7 @@ const EscalacaoScreen = () => {
 
   const fetchJogadores = async () => {
     try {
-      const response = await fetch('http://192.168.1.193:5000/jogadores');
+      const response = await fetch('http://192.168.0.171:5000/jogadores');
       const data = await response.json();
       setDisponiveis({
         'Ala armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
@@ -106,6 +105,39 @@ const EscalacaoScreen = () => {
   };
 
   const isComplete = Object.values(comprados).every(jogador => jogador !== null);
+
+  function renderItem({item}) {
+    return (
+      <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
+        <VStack>
+          <Text bold>{item.nome}</Text>
+          <Text>Pontuação: {item.pontuacao}</Text>
+          <Text>Valor: R${item.valor}</Text>
+          <Text>Time: {item.time}</Text>
+          <Text>Posição: {item.posicao}</Text>
+        </VStack>
+        {comprados[selectedPosition]?.key === item.key ? (
+          <HStack>
+            <Text color="red.500">Comprado </Text>
+            <Button colorScheme="red" onPress={() => cancelPurchase(item)}>Cancelar</Button>
+          </HStack>
+        ) : (
+          <Button onPress={() => buyPlayer(item)}>Comprar</Button>
+        )}
+      </HStack>
+    )
+  }
+
+  const [loading, setLoading] = useState(false);
+
+  const handleEndReached = () => {
+    setLoading(true);
+    // Simule um pequeno atraso para exibir o indicador de carregamento
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000); // Ajuste o tempo conforme necessário
+  };
+
 
   return (
     <NativeBaseProvider>
@@ -248,25 +280,10 @@ const EscalacaoScreen = () => {
             <FlatList
               data={selectedPosition ? disponiveis[selectedPosition] : []}
               keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) => (
-                <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
-                  <VStack>
-                    <Text bold>{item.nome}</Text>
-                    <Text>Pontuação: {item.pontuacao}</Text>
-                    <Text>Valor: R${item.valor}</Text>
-                    <Text>Time: {item.time}</Text>
-                    <Text>Posição: {item.posicao}</Text>
-                  </VStack>
-                  {comprados[selectedPosition]?.key === item.key ? (
-                    <HStack>
-                      <Text color="red.500">Comprado </Text>
-                      <Button colorScheme="red" onPress={() => cancelPurchase(item)}>Cancelar</Button>
-                    </HStack>
-                  ) : (
-                    <Button onPress={() => buyPlayer(item)}>Comprar</Button>
-                  )}
-                </HStack>
-              )}
+              renderItem={renderItem}
+              ListFooterComponent={!loading ? <ActivityIndicator size="large" color="#0000ff" /> : null}
+              onEndReached={handleEndReached}
+              onEndReachedThreshold={0}
             />
           </Actionsheet.Content>
         </Actionsheet>
