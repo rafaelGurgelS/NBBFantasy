@@ -132,10 +132,9 @@ const EscalacaoScreen = () => {
 
   const handleEndReached = () => {
     setLoading(true);
-    // Simule um pequeno atraso para exibir o indicador de carregamento
     setTimeout(() => {
       setLoading(false);
-    }, 1000); // Ajuste o tempo conforme necessário
+    }, 1000); 
   };
 
 
@@ -281,7 +280,7 @@ const EscalacaoScreen = () => {
               data={selectedPosition ? disponiveis[selectedPosition] : []}
               keyExtractor={(item, index) => index.toString()}
               renderItem={renderItem}
-              ListFooterComponent={!loading ? <ActivityIndicator size="large" color="#0000ff" /> : null}
+              ListFooterComponent={!loading ? <ActivityIndicator size="large" color="#FC9904" /> : null}
               onEndReached={handleEndReached}
               onEndReachedThreshold={0}
             />

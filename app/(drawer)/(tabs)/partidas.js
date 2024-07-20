@@ -1,110 +1,94 @@
-import React, { useState } from 'react';
-import { NativeBaseProvider, VStack, Heading, Box, FlatList, Text, HStack, IconButton,Button, Icon } from 'native-base';
-import { MaterialIcons } from '@expo/vector-icons';
+import React, { useState, useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { Text, Button, VStack, HStack, ScrollView, Center, Box, Icon } from 'native-base';
+import { MaterialIcons } from '@expo/vector-icons'; 
 
-// Sample match data
-const matches = [
-  { id: '1', match: 'FLA 55 X 65 BAU' },
-  { id: '2', match: 'FLA 68 X 74 COR' },
-  { id: '3', match: 'FLA 75 X 70 MIN' },
-  { id: '4', match: 'FLA 80 X 85 SP' },
-  { id: '5', match: 'FLA 90 X 95 RIO' },
-  { id: '6', match: 'FLA 70 X 75 BSB' },
-  { id: '7', match: 'FLA 65 X 60 REC' },
-  { id: '8', match: 'FLA 80 X 78 SAL' },
-  { id: '9', match: 'FLA 85 X 82 PAL' },
-  { id: '10', match: 'FLA 88 X 87 BOT' }
-];
+const PartidasScreen = () => {
+  const [partidas, setPartidas] = useState([]);
+  const [rodadaAtual, setRodadaAtual] = useState(null);
+  const [rodadas, setRodadas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-const itemsPerPage = 5;
+  useEffect(() => {
+    fetchPartidas();
+  }, []);
 
-export default function PartidasScreen() {
-  const [page, setPage] = useState(0);
+  const fetchPartidas = async () => {
+    try {
+      const response = await fetch('http://192.168.0.171:5000/partidas');
+      const data = await response.json();
+      setPartidas(data);
+
+      // Obter todas as rodadas disponíveis
+      const uniqueRodadas = [...new Set(data.map(partida => partida.rodada))];
+      setRodadas(uniqueRodadas);
+
+      // Definir a rodada atual como a primeira rodada disponível
+      if (uniqueRodadas.length > 0) {
+        setRodadaAtual(uniqueRodadas[0]);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar partidas:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const partidasPorRodada = partidas.filter(partida => partida.rodada === rodadaAtual);
 
   const handleNextPage = () => {
-    setPage((prevPage) => (prevPage < Math.ceil(matches.length / itemsPerPage) - 1 ? prevPage + 1 : prevPage));
+    const currentIndex = rodadas.indexOf(rodadaAtual);
+    if (currentIndex < rodadas.length - 1) {
+      setRodadaAtual(rodadas[currentIndex + 1]);
+    }
   };
 
   const handlePreviousPage = () => {
-    setPage((prevPage) => (prevPage > 0 ? prevPage - 1 : prevPage));
+    const currentIndex = rodadas.indexOf(rodadaAtual);
+    if (currentIndex > 0) {
+      setRodadaAtual(rodadas[currentIndex - 1]);
+    }
   };
 
-  const currentPageMatches = matches.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
-  const roundTitle = `${9 + page}ª rodada`;
+  if (loading) {
+    return (
+      <VStack flex={1} justifyContent="center" alignItems="center">
+        <ActivityIndicator size="large" color="#FC9904" />
+      </VStack>
+    );
+  }
 
   return (
-    <NativeBaseProvider>
-      <VStack flex={1} justifyContent="center" alignItems="center">
-        {/* Bloco vermelho com ícone de relógio e texto */}
-        <Box
-          backgroundColor="red.500"
-          borderRadius={10} // Borda arredondada
-          width="80%" // Largura ajustável
-          height={50} // Altura ajustável
-          justifyContent="center"
-          alignItems="center"
-          mb={4} // Margem inferior para separação
-        >
-          <HStack alignItems="center" space={2}>
-            <Icon as={MaterialIcons} name="access-time" color="white" size="sm" />
-            <Text color="white" fontSize="md">Tempo restante:03:40</Text>
+    <VStack flex={1} justifyContent="center" alignItems="center" space={4} px={4}>
+      <Box width="100%" bg="#E78E8E" p={4} rounded="md" alignItems="center" mt={4}>
+        <HStack alignItems="center" space={2}>
+          <Icon as={MaterialIcons} name="access-time" color="white" size="sm" />
+          <Text color="white" fontSize="md">Tempo para próxima rodada: 00:00:00</Text>
+        </HStack>
+      </Box>
+      {rodadaAtual !== null && (
+        <>
+          <HStack space={4} alignItems="center" mt={4}>
+            <Button onPress={handlePreviousPage} bg="green.500">&lt;</Button>
+            <Text fontSize="xl" fontWeight="bold">Rodada {rodadaAtual}</Text>
+            <Button onPress={handleNextPage} bg="green.500">&gt;</Button>
           </HStack>
-        </Box>
-
-        {/* Bloco laranja com bordas arredondadas */}
-        <Box
-          mt={20}
-          backgroundColor="#FFA500" // Cor laranja
-          borderRadius={10} // Borda arredondada
-          opacity={0.9}
-          width="75%" // Largura ajustável
-          height="50%" // Altura ajustável
-          justifyContent="center"
-          alignItems="center"
-          p={4}
-        >
-          <Text fontSize="lg" mb={4}>{roundTitle}</Text>
-          <HStack alignItems="center" justifyContent="space-between" width="100%">
-            <IconButton
-              icon={<Icon as={MaterialIcons} name="chevron-left" />}
-              onPress={handlePreviousPage}
-              isDisabled={page === 0}
-            />
-            <FlatList
-              data={currentPageMatches}
-              renderItem={({ item }) => (
-                <Box key={item.id} py={2}>
-                  <Text>{item.match}</Text>
-                </Box>
-              )}
-              keyExtractor={(item) => item.id}
-            />
-            <IconButton
-              icon={<Icon as={MaterialIcons} name="chevron-right" />}
-              onPress={handleNextPage}
-              isDisabled={page === Math.ceil(matches.length / itemsPerPage) - 1}
-            />
-          </HStack>
-          
-          <Button
-            width="100%"
-            colorScheme='success'
-            borderRadius="full"
-            height={60}
-            size="lg"
-            justifyContent="center"
-            alignItems="center"
-            paddingTop={3}
-           
-          >
-            <Text  fontSize={16}>
-              Rodada atual
-            </Text>
-          </Button>    
-
-
-        </Box>
-      </VStack>
-    </NativeBaseProvider>
+          <ScrollView width="100%" mt={4}>
+            {partidasPorRodada.map((partida, index) => (
+              <HStack key={index} justifyContent="space-between" alignItems="center" w="100%" px={4} py={2} borderBottomWidth={1} borderColor="gray.200">
+                <Text flex={1} textAlign="left">{partida.time_casa}</Text>
+                <Text flex={1} textAlign="center">{partida.placar_casa} - {partida.placar_visitante}</Text>
+                <Text flex={1} textAlign="right">{partida.time_visitante}</Text>
+              </HStack>
+            ))}
+          </ScrollView>
+          <Center mb={4}>
+            <Button bg="green.500" _text={{ color: 'white' }}>Rodada Atual</Button>
+          </Center>
+        </>
+      )}
+    </VStack>
   );
-}
+};
+
+export default PartidasScreen;
