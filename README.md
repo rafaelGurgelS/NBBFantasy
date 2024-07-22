@@ -6,7 +6,7 @@ Os participantes terão a oportunidade de simular partidas e acumular pontuaçõ
 
 ## Instale as dependências Python
 
-`````` pip install -r requirements.txt      `````
+```pip install -r requirements.txt      ```
 
 
 ## Navegue até o diretório backend
@@ -24,10 +24,10 @@ Os participantes terão a oportunidade de simular partidas e acumular pontuaçõ
 
 ## Executar o servidor Flask
 
-`````  python app.py    ``````
+```  python app.py    ```
 
 
 ## Executar o projeto Expo
 
-``````npx expo start```````
+```npx expo start```
 
