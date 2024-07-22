@@ -30,7 +30,7 @@ const EscalacaoScreen = () => {
 
   const fetchJogadores = async () => {
     try {
-      const response = await fetch('http://192.168.0.171:5000/jogadores');
+      const response = await fetch('http://192.168.1.193:5000/jogadores');
       const data = await response.json();
       setDisponiveis({
         'Ala armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),

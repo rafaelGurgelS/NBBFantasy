@@ -9,13 +9,19 @@ const PartidasScreen = () => {
   const [rodadas, setRodadas] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const ItemSeparator = () => (
+    <View style={{ height: 1, backgroundColor: 'gray' }} />
+  );
+
+
+
   useEffect(() => {
     fetchPartidas();
   }, []);
 
   const fetchPartidas = async () => {
     try {
-      const response = await fetch('http://192.168.0.171:5000/partidas');
+      const response = await fetch('http://192.168.1.193:5000/partidas');
       const data = await response.json();
       setPartidas(data);
 
@@ -69,21 +75,28 @@ const PartidasScreen = () => {
       {rodadaAtual !== null && (
         <>
           <HStack space={4} alignItems="center" mt={4}>
-            <Button onPress={handlePreviousPage} bg="green.500">&lt;</Button>
+            <Button onPress={handlePreviousPage} bg="orange.400">&lt;</Button>
             <Text fontSize="xl" fontWeight="bold">Rodada {rodadaAtual}</Text>
-            <Button onPress={handleNextPage} bg="green.500">&gt;</Button>
+            <Button onPress={handleNextPage} bg="orange.400">&gt;</Button>
           </HStack>
-          <ScrollView width="100%" mt={4}>
+          <Box bg="gray.200" flex={1} rounded="md"  >
+            <ScrollView width="100%">
             {partidasPorRodada.map((partida, index) => (
-              <HStack key={index} justifyContent="space-between" alignItems="center" w="100%" px={4} py={2} borderBottomWidth={1} borderColor="gray.200">
-                <Text flex={1} textAlign="left">{partida.time_casa}</Text>
-                <Text flex={1} textAlign="center">{partida.placar_casa} - {partida.placar_visitante}</Text>
-                <Text flex={1} textAlign="right">{partida.time_visitante}</Text>
-              </HStack>
-            ))}
-          </ScrollView>
+              <View key={index}>
+                <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
+                  <Text flex={1} textAlign="right">{partida.time_casa}</Text>
+                  <Text flex={1} textAlign="center">{partida.placar_casa} x {partida.placar_visitante}</Text>
+                  <Text flex={1} textAlign="left">{partida.time_visitante}</Text>
+                </HStack>
+                {index < partidasPorRodada.length - 1 && (
+                  <View style={{ height: 1, backgroundColor: 'gray', marginHorizontal: 16 }} />
+                )}
+              </View>
+              ))}
+            </ScrollView>
+          </Box>
           <Center mb={4}>
-            <Button bg="green.500" _text={{ color: 'white' }}>Rodada Atual</Button>
+            <Button bg="orange.400" _text={{ color: 'white' }}>Rodada Atual</Button>
           </Center>
         </>
       )}
