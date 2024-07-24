@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator,TouchableOpacity } from 'react-native';
 import { Text, Button, VStack, HStack, ScrollView, Center, Box, Icon } from 'native-base';
 import { MaterialIcons } from '@expo/vector-icons'; 
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const PartidasScreen = () => {
   const [partidas, setPartidas] = useState([]);
   const [rodadaAtual, setRodadaAtual] = useState(null);
+  const [rodadaHoje,setRodadaHoje] = useState(null);
   const [rodadas, setRodadas] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,10 +30,11 @@ const PartidasScreen = () => {
       // Obter todas as rodadas disponíveis
       const uniqueRodadas = [...new Set(data.map(partida => partida.rodada))];
       setRodadas(uniqueRodadas);
-
+      
       // Definir a rodada atual como a primeira rodada disponível
       if (uniqueRodadas.length > 0) {
         setRodadaAtual(uniqueRodadas[0]);
+        setRodadaHoje(uniqueRodadas[0])
       }
     } catch (error) {
       console.error('Erro ao buscar partidas:', error);
@@ -56,6 +59,15 @@ const PartidasScreen = () => {
     }
   };
 
+  const handleRodadaHoje = () => {
+    const currentIndex = rodadas.indexOf(rodadaHoje);
+    
+    setRodadaAtual(rodadas[currentIndex]);
+    
+  }
+
+
+
   if (loading) {
     return (
       <VStack flex={1} justifyContent="center" alignItems="center">
@@ -75,9 +87,18 @@ const PartidasScreen = () => {
       {rodadaAtual !== null && (
         <>
           <HStack space={4} alignItems="center" mt={4}>
-            <Button onPress={handlePreviousPage} bg="orange.400">&lt;</Button>
+            <TouchableOpacity 
+           
+            onPress={handlePreviousPage}>
+                <FontAwesome name="chevron-left" size={35} color="orange" />
+            </TouchableOpacity>
             <Text fontSize="xl" fontWeight="bold">Rodada {rodadaAtual}</Text>
-            <Button onPress={handleNextPage} bg="orange.400">&gt;</Button>
+            <TouchableOpacity 
+            
+             onPress={handleNextPage}>
+                <FontAwesome name="chevron-right" size={35} color="orange" />
+            </TouchableOpacity>
+           
           </HStack>
           <Box bg="gray.200" flex={1} rounded="md"  >
             <ScrollView width="100%">
@@ -96,7 +117,7 @@ const PartidasScreen = () => {
             </ScrollView>
           </Box>
           <Center mb={4}>
-            <Button bg="orange.400" _text={{ color: 'white' }}>Rodada Atual</Button>
+            <Button onPress={handleRodadaHoje}  bg="orange.400" _text={{ color: 'white' }} borderRadius="20px" >Rodada Atual</Button>
           </Center>
         </>
       )}

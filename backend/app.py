@@ -39,15 +39,16 @@ def get_partidas():
         with open('nbb_partidas.csv', mode='r', encoding='utf-8-sig') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                partida = {
-                    'data': row['DATA'],
-                    'time_casa': row['EQUIPE CASA'],
-                    'time_visitante': row['EQUIPE VISITANTE'],
-                    'placar_casa': row['PLACAR CASA'],
-                    'placar_visitante': row['PLACAR VISITANTE'],
-                    'rodada': row['RODADA']
-                }
-                partidas.append(partida)
+                if(row['FASE']=='1º TURNO'):
+                    partida = {
+                        'data': row['DATA'],
+                        'time_casa': row['EQUIPE CASA'],
+                        'time_visitante': row['EQUIPE VISITANTE'],
+                        'placar_casa': row['PLACAR CASA'],
+                        'placar_visitante': row['PLACAR VISITANTE'],
+                        'rodada': row['RODADA']
+                    }
+                    partidas.append(partida)
 
         return jsonify(partidas)
     
