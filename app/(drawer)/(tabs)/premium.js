@@ -19,11 +19,11 @@ export default function PremiumScreen() {
         {/* Bloco laranja com bordas arredondadas */}
         <Box
           mt={-10}
-          backgroundColor="#FFA500" // Cor laranja
-          borderRadius={10} // Borda arredondada
+          backgroundColor="#FFA500" 
+          borderRadius={10} 
           opacity={0.9}
-          width="75%" // Largura ajustável
-          height="50%" // Altura ajustável
+          width="75%" 
+          height="50%" 
         >
           {/* Conteúdo do bloco laranja (por enquanto vazio) */}
         </Box>

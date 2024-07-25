@@ -20,7 +20,6 @@ export default function Conta() {
       {/* Main Content */}
       <View style={styles.content}>
         <Text style={styles.text}>Conteúdo da Minha Conta</Text>
-        {/* Adicione outros elementos ou botões conforme necessário */}
       </View>
     </View>
   );
@@ -30,12 +29,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 40, // Espaçamento superior para a área segura
+    paddingTop: 40, 
     paddingBottom: 10,
-    paddingHorizontal: 10, // Adicionado para espaçamento horizontal
-    backgroundColor: '#fff', // Cor de fundo do header
+    paddingHorizontal: 10, 
+    backgroundColor: '#fff', 
     borderBottomWidth: 2,
-    borderBottomColor: '#FC9904', // Cor laranja do traço
+    borderBottomColor: '#FC9904', 
   },
   backButton: {
     marginRight: 10,
@@ -43,7 +42,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    textAlign: 'center', // Centraliza o título
+    textAlign: 'center', 
     flex: 1, // Permite que o título ocupe o espaço restante
   },
   content: {
