@@ -30,7 +30,7 @@ const EscalacaoScreen = () => {
 
   const fetchJogadores = async () => {
     try {
-      const response = await fetch('http://192.168.0.171:5000/jogadores');
+      const response = await fetch('http://192.168.43.250:5000/jogadores');
       const data = await response.json();
       setDisponiveis({
         'Ala armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
@@ -182,7 +182,7 @@ const EscalacaoScreen = () => {
           position="relative"
         >
           <Image
-            source={require('../../../assets/images/quadra.jpg')}
+            source={require('../../../assets/images/quadra2.jpg')}
             alt="Quadra de basquete"
             style={{ width: '100%', height: '100%', position: 'absolute' }}
           />

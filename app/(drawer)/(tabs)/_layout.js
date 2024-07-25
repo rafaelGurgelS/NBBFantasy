@@ -41,13 +41,13 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <MaterialIcons name="sports-basketball" size={24} color={color} />,
           }}
         />
-        <Tabs.Screen
+        {/*<Tabs.Screen
           name="premium"
           options={{
             title: 'Premium',
             tabBarIcon: ({ color }) => <MaterialCommunityIcons name="crown" size={24} color={color} />,
           }}
-        />
+        />*/}
       </Tabs>
     </NativeBaseProvider>
   );
