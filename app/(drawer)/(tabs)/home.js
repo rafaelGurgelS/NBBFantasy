@@ -84,7 +84,7 @@ export default function HomeScreen() {
               width={20}
               height={8}
             >
-              <Text>150</Text>
+              <Text>0</Text>
             </Box>
           </Box>
 

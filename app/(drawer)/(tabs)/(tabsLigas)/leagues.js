@@ -11,8 +11,6 @@ const Leagues = () => {
   ];
 
   const handlePress = (league) => {
-    //console.log(`Clicked on ${league.name}`);
-    // Aqui você pode adicionar a lógica para navegar ou realizar qualquer ação
   };
 
   return (
@@ -29,7 +27,7 @@ const Leagues = () => {
                 backgroundColor= "gray.300"
                 borderRadius="md"
                 w="100%"
-                mb={2} // Adicione uma margem inferior para separar os itens
+                mb={2} 
               >
                 <HStack justifyContent="space-between" alignItems="center">
                   <Icon as={FontAwesome} name="trophy" size={10}  color="black" />
@@ -39,10 +37,9 @@ const Leagues = () => {
             </TouchableOpacity>
           )}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 0 }} // Adicione padding inferior para espaço adicional
+          contentContainerStyle={{ paddingBottom: 0 }} 
         />
         <Button
-          //mt={} // Adicione uma margem superior para separar do FlatList
           colorScheme="green"
           borderRadius="full"
           startIcon={<Icon as={FontAwesome} name="plus" />}

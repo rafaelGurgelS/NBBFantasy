@@ -29,5 +29,32 @@ def get_jogadores():
         print(f"Erro ao ler CSV: {str(e)}")
         return jsonify({'error': 'Erro ao ler CSV'}), 500
 
+# Endpoint para obter a lista de partidas
+@app.route('/partidas', methods=['GET'])
+def get_partidas():
+    partidas = []
+
+    # Leitura do arquivo CSV e construção da lista de partidas
+    try:
+        with open('nbb_partidas.csv', mode='r', encoding='utf-8-sig') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                if(row['FASE']=='1º TURNO'):
+                    partida = {
+                        'data': row['DATA'],
+                        'time_casa': row['EQUIPE CASA'],
+                        'time_visitante': row['EQUIPE VISITANTE'],
+                        'placar_casa': row['PLACAR CASA'],
+                        'placar_visitante': row['PLACAR VISITANTE'],
+                        'rodada': row['RODADA']
+                    }
+                    partidas.append(partida)
+
+        return jsonify(partidas)
+    
+    except Exception as e:
+        print(f"Erro ao ler CSV: {str(e)}")
+        return jsonify({'error': 'Erro ao ler CSV'}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import {IconButton,Modal,FlatList, ScrollView, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image } from 'native-base';
+import {IconButton,FlatList, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
-
-
+import { ActivityIndicator } from 'react-native-paper';
 
 
 const EscalacaoScreen = () => {
@@ -31,7 +30,7 @@ const EscalacaoScreen = () => {
 
   const fetchJogadores = async () => {
     try {
-      const response = await fetch('http://192.168.1.193:5000/jogadores');
+      const response = await fetch('http://192.168.43.250:5000/jogadores');
       const data = await response.json();
       setDisponiveis({
         'Ala armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
@@ -47,9 +46,11 @@ const EscalacaoScreen = () => {
 
   const selectPosition = (position) => {
     setSelectedPosition(position);
-    
+    setListLoading(true);
     onOpen();
-   
+    setTimeout(() => {
+      setListLoading(false);
+    }, 1000); 
   };
 
   const buyPlayer = (jogador) => {
@@ -107,6 +108,39 @@ const EscalacaoScreen = () => {
 
   const isComplete = Object.values(comprados).every(jogador => jogador !== null);
 
+  function renderItem({item}) {
+    return (
+      <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
+        <VStack>
+          <Text bold>{item.nome}</Text>
+          <Text>Pontuação: {item.pontuacao}</Text>
+          <Text>Valor: R${item.valor}</Text>
+          <Text>Time: {item.time}</Text>
+          <Text>Posição: {item.posicao}</Text>
+        </VStack>
+        {comprados[selectedPosition]?.key === item.key ? (
+          <HStack>
+            <Text color="red.500">Comprado </Text>
+            <Button colorScheme="red" onPress={() => cancelPurchase(item)}>Cancelar</Button>
+          </HStack>
+        ) : (
+          <Button onPress={() => buyPlayer(item)}>Comprar</Button>
+        )}
+      </HStack>
+    )
+  }
+
+  const [listLoading, setListLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleEndReached = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000); 
+  };
+
+
   return (
     <NativeBaseProvider>
       <VStack flex={1} justifyContent="center" alignItems="center">
@@ -148,7 +182,7 @@ const EscalacaoScreen = () => {
           position="relative"
         >
           <Image
-            source={require('../../../assets/images/quadra.jpg')}
+            source={require('../../../assets/images/quadra2.jpg')}
             alt="Quadra de basquete"
             style={{ width: '100%', height: '100%', position: 'absolute' }}
           />
@@ -203,7 +237,7 @@ const EscalacaoScreen = () => {
               </VStack>
             </HStack>
 
-            <HStack space={10} position="absolute" bottom="10%">
+            <HStack space={10} position="absolute" bottom="15%">
               <VStack alignItems="center">
                 <Button
                   size="lg"
@@ -245,29 +279,19 @@ const EscalacaoScreen = () => {
               onPress={onClose}
             />
             <Text fontSize="xl" mb={4}>Posição: {selectedPosition}</Text>
-            <FlatList
-              data={selectedPosition ? disponiveis[selectedPosition] : []}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) => (
-                <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
-                  <VStack>
-                    <Text bold>{item.nome}</Text>
-                    <Text>Pontuação: {item.pontuacao}</Text>
-                    <Text>Valor: R${item.valor}</Text>
-                    <Text>Time: {item.time}</Text>
-                    <Text>Posição: {item.posicao}</Text>
-                  </VStack>
-                  {comprados[selectedPosition]?.key === item.key ? (
-                    <HStack>
-                      <Text color="red.500">Comprado </Text>
-                      <Button colorScheme="red" onPress={() => cancelPurchase(item)}>Cancelar</Button>
-                    </HStack>
-                  ) : (
-                    <Button onPress={() => buyPlayer(item)}>Comprar</Button>
-                  )}
-                </HStack>
-              )}
-            />
+            {listLoading ? (
+              <ActivityIndicator size="large" color="#FC9904" />
+            ) : (
+              <FlatList
+                data={selectedPosition ? disponiveis[selectedPosition] : []}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={renderItem}
+                ListFooterComponent={!loading ? <ActivityIndicator size="large" color="#FC9904" /> : null}
+                onEndReached={handleEndReached}
+                onEndReachedThreshold={0.1}
+              
+              />
+            )}
           </Actionsheet.Content>
         </Actionsheet>
 
