@@ -29,7 +29,7 @@ const EscalacaoScreen = () => {
 
   const fetchJogadores = async () => {
     try {
-      const response = await fetch('http://192.168.0.171:5000/jogadores');
+      const response = await fetch('http://192.168.1.193:5000/jogadores');
       const data = await response.json();
       setDisponiveis({
         'Ala armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
@@ -116,10 +116,16 @@ const EscalacaoScreen = () => {
         {comprados[selectedPosition]?.key === item.key ? (
           <HStack>
             <Text color="red.500">Comprado </Text>
-            <Button colorScheme="red" onPress={() => cancelPurchase(item)}>Cancelar</Button>
+            <Button colorScheme="red" borderRadius="20px" onPress={() => cancelPurchase(item)}>Cancelar</Button>
           </HStack>
         ) : (
-          <Button onPress={() => buyPlayer(item)}>Comprar</Button>
+          <Button
+            bg="orange.400"
+            onPress={() => buyPlayer(item)}
+            borderRadius="20px"
+          >
+          Comprar
+          </Button>
         )}
       </HStack>
     )
@@ -139,25 +145,25 @@ const EscalacaoScreen = () => {
     <NativeBaseProvider>
       <VStack flex={1} justifyContent="flex-start" alignItems="center">
         
-      <HStack w="100%" py={4} bg="gray.600" justifyContent="space-between" alignItems="center" px={4}>
-        <Flex flex={1} alignItems="center">
-          <Text color="white" fontWeight="bold">R${userMoney}</Text>
-        </Flex>
-        <Flex flex={1} alignItems="center">
-          <Text color="white" fontWeight="bold">Rodada: 1</Text>
-        </Flex>
-        <Flex flex={1} alignItems="center" flexDirection="row" justifyContent="center">
-          <FontAwesome name={isComplete ? "check-circle" : "times-circle"} size={24} color="white" />
-          <Text color="white" fontWeight="bold" ml={2}>
-            {isComplete ? "Completa" : "Incompleta"}
-          </Text>
-        </Flex>
-      </HStack>
+        <HStack w="100%" py={4} bg="warmGray.400" justifyContent="space-between" alignItems="center" px={4}>
+          <Flex flex={1} alignItems="center">
+            <Text color="white" fontWeight="bold">R${userMoney}</Text>
+          </Flex>
+          <Flex flex={1} alignItems="center">
+            <Text color="white" fontWeight="bold">Rodada: 1</Text>
+          </Flex>
+          <Flex flex={1} alignItems="center" flexDirection="row" justifyContent="center">
+            <FontAwesome name={isComplete ? "check-circle" : "times-circle"} size={24} color="white" />
+            <Text color="white" fontWeight="bold" ml={2}>
+              {isComplete ? "Completa" : "Incompleta"}
+            </Text>
+          </Flex>
+        </HStack>
 
 
         <Box flex={1} w="100%">
           <Image
-            source={require('../../../assets/images/quadra2.jpg')}
+            source={require('../../../assets/images/quadra_nova.jpg')}
             alt="Quadra de basquete"
             style={{ width: '100%', height: '100%', position: 'absolute' }}
           />

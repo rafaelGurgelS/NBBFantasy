@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator,TouchableOpacity } from 'react-native';
-import { Text, Button, VStack, HStack, ScrollView, Center, Box, Icon } from 'native-base';
+import { View, ActivityIndicator,TouchableOpacity,StyleSheet } from 'react-native';
+import { Text, Button, VStack, HStack, ScrollView, Center, Pressable,Box, Icon } from 'native-base';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
@@ -23,7 +23,7 @@ const PartidasScreen = () => {
 
   const fetchPartidas = async () => {
     try {
-      const response = await fetch('http://192.168.0.171:5000/partidas');
+      const response = await fetch('http://192.168.1.193:5000/partidas');
       const data = await response.json();
       setPartidas(data);
 
@@ -66,6 +66,23 @@ const PartidasScreen = () => {
     
   }
 
+  const styles = StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    circleButton: {
+      backgroundColor: 'rgba(192,192,192,0.5)',
+      borderRadius: 50,
+      padding: 10,
+      margin: 5,
+    },
+    text: {
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+  });
+
 
 
   if (loading) {
@@ -75,6 +92,7 @@ const PartidasScreen = () => {
       </VStack>
     );
   }
+
 
   return (
     <VStack flex={1} justifyContent="center" alignItems="center" space={4} px={4}>
@@ -87,17 +105,31 @@ const PartidasScreen = () => {
       {rodadaAtual !== null && (
         <>
           <HStack space={4} alignItems="center" mt={4}>
-            <TouchableOpacity 
-           
-            onPress={handlePreviousPage}>
+          <Pressable onPress={handlePreviousPage}>
+            {({ isPressed }) => (
+              <Center
+                p={2}
+                bg={isPressed ? 'rgba(192,192,192,0.5)' : 'transparent'}
+                borderRadius="full"
+              >
                 <FontAwesome name="chevron-left" size={35} color="orange" />
-            </TouchableOpacity>
-            <Text fontSize="xl" fontWeight="bold">Rodada {rodadaAtual}</Text>
-            <TouchableOpacity 
-            
-             onPress={handleNextPage}>
+              </Center>
+            )}
+          </Pressable>
+      
+          <Text fontSize="xl" fontWeight="bold">Rodada {rodadaAtual}</Text>
+      
+          <Pressable onPress={handleNextPage}>
+            {({ isPressed }) => (
+              <Center
+                p={2}
+                bg={isPressed ? 'rgba(192,192,192,0.5)' : 'transparent'}
+                borderRadius='full'
+              >
                 <FontAwesome name="chevron-right" size={35} color="orange" />
-            </TouchableOpacity>
+              </Center>
+            )}
+          </Pressable>
            
           </HStack>
           <Box bg="gray.200" flex={1} rounded="md"  >
