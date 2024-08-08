@@ -1,4 +1,5 @@
 import csv
+import pandas as pd
 from flask import Flask, jsonify
 
 app = Flask(__name__)
@@ -10,20 +11,17 @@ def get_jogadores():
 
     # Leitura do arquivo CSV e construção da lista de jogadores
     try:
-        with open('nbb_estatisticas.csv', mode='r', encoding='utf-8-sig') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                jogador = {
-                    'key' : row['key'],
-                    'nome': row['Jogador'],
-                    'pontuacao': float(row['PTS']),
-                    'valor': float(row['PTS']),
-                    'time': row['Equipe'],
-                    'posicao': row['Posicao']
-                }
-                jogadores.append(jogador)
-
+        
+        df_stat = pd.read_csv('nbb_estatisticas.csv')
+        df_stat.rename(columns={'Jogador':'nome','PTS':'pontuacao','Equipe':'time','Posicao':'posicao'},inplace=True)
+        df_stat['valor']=df_stat['pontuacao']
+        df_filtered=df_stat[['key','nome','pontuacao','valor','time','posicao']]
+        
+        jogadores = df_filtered.to_dict(orient='records')
+    
+        # Retorna a lista de jogadores como JSON
         return jsonify(jogadores)
+       
     
     except Exception as e:
         print(f"Erro ao ler CSV: {str(e)}")
@@ -36,20 +34,29 @@ def get_partidas():
 
     # Leitura do arquivo CSV e construção da lista de partidas
     try:
-        with open('nbb_partidas.csv', mode='r', encoding='utf-8-sig') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if(row['FASE']=='1º TURNO'):
-                    partida = {
-                        'data': row['DATA'],
-                        'time_casa': row['EQUIPE CASA'],
-                        'time_visitante': row['EQUIPE VISITANTE'],
-                        'placar_casa': row['PLACAR CASA'],
-                        'placar_visitante': row['PLACAR VISITANTE'],
-                        'rodada': row['RODADA']
-                    }
-                    partidas.append(partida)
-
+        # Carrega o arquivo CSV
+        df_partidas = pd.read_csv('nbb_partidas.csv', encoding='utf-8-sig')
+        
+        # Filtra as partidas do "1º TURNO"
+        df_filtered = df_partidas[df_partidas['FASE'] == '1º TURNO']
+        
+        # Renomeia as colunas para manter consistência no formato de dados
+        df_filtered.rename(columns={
+            'DATA': 'data',
+            'EQUIPE CASA': 'time_casa',
+            'EQUIPE VISITANTE': 'time_visitante',
+            'PLACAR CASA': 'placar_casa',
+            'PLACAR VISITANTE': 'placar_visitante',
+            'RODADA': 'rodada'
+        }, inplace=True)
+        
+        # Seleciona apenas as colunas necessárias
+        df_filtered = df_filtered[['data', 'time_casa', 'time_visitante', 'placar_casa', 'placar_visitante', 'rodada']]
+        
+        # Converte o DataFrame para uma lista de dicionários
+        partidas = df_filtered.to_dict(orient='records')
+        
+        # Retorna a lista de partidas como JSON
         return jsonify(partidas)
     
     except Exception as e:

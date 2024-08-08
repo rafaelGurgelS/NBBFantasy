@@ -16,14 +16,13 @@ const PartidasScreen = () => {
   );
 
 
-
   useEffect(() => {
     fetchPartidas();
   }, []);
 
   const fetchPartidas = async () => {
     try {
-      const response = await fetch('http://192.168.1.193:5000/partidas');
+      const response = await fetch('http://192.168.43.250:5000/partidas');
       const data = await response.json();
       setPartidas(data);
 

@@ -29,7 +29,7 @@ const EscalacaoScreen = () => {
 
   const fetchJogadores = async () => {
     try {
-      const response = await fetch('http://192.168.1.193:5000/jogadores');
+      const response = await fetch('http://192.168.43.250:5000/jogadores');
       const data = await response.json();
       setDisponiveis({
         'Ala armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
@@ -147,7 +147,7 @@ const EscalacaoScreen = () => {
         
         <HStack w="100%" py={4} bg="warmGray.400" justifyContent="space-between" alignItems="center" px={4}>
           <Flex flex={1} alignItems="center">
-            <Text color="white" fontWeight="bold">R${userMoney}</Text>
+            <Text color="white" fontWeight="bold">R${userMoney.toFixed(2)}</Text>
           </Flex>
           <Flex flex={1} alignItems="center">
             <Text color="white" fontWeight="bold">Rodada: 1</Text>
