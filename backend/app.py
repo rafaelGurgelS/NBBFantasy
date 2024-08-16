@@ -27,22 +27,27 @@ app = Flask(__name__)
 # Endpoint para obter a lista de jogadores
 @app.route('/jogadores', methods=['GET'])
 def get_jogadores():
-    session = Session()
     try:
-        # Consulta para obter todos os jogadores
         jogadores = session.query(Jogador).all()
-        
-        # Converte a consulta para uma lista de dicionários
-        jogadores_list = [{
-            'id': jogador.id,
-            'nome': jogador.nome,
-            'pontuacao': jogador.pontuacao,
-            'valor': jogador.valor,
-            'time': jogador.time,
-            'posicao': jogador.posicao
-        } for jogador in jogadores]
-        
-        # Retorna a lista de jogadores como JSON
+        jogadores_list = []
+        for jogador in jogadores:
+            jogadores_list.append({
+                'id': jogador.id,
+                'nome': jogador.nome,
+                'valor': jogador.valor,
+                'time': jogador.time,
+                'posicao': jogador.posicao,
+                'arremessos_3pontos': jogador.arremessos_3pontos,
+                'arremessos_2pontos': jogador.arremessos_2pontos,
+                'lances_livres_convertidos': jogador.lances_livres_convertidos,
+                'rebotes_totais': jogador.rebotes_totais,
+                'bolas_recuperadas': jogador.bolas_recuperadas,
+                'tocos': jogador.tocos,
+                'erros': jogador.erros,
+                'duplos_duplos': jogador.duplos_duplos,
+                'enterradas': jogador.enterradas,
+                'assistencias': jogador.assistencias
+            })
         return jsonify(jogadores_list)
     
     except Exception as e:
@@ -50,15 +55,13 @@ def get_jogadores():
         return jsonify({'error': 'Erro ao consultar o banco de dados'}), 500
     finally:
         session.close()  # Fecha a sessão
+
 # Endpoint para obter a lista de partidas
 @app.route('/partidas', methods=['GET'])
 def get_partidas():
-    session=Session()
+    session = Session()
     try:
-        # Consulta para obter todas as partidas do "1º TURNO"
-        partidas = session.query(Partida).filter_by(fase='1º TURNO').all()
-        
-        # Converte a consulta para uma lista de dicionários
+        partidas = session.query(Partida).all()
         partidas_list = [{
             'id': partida.id,
             'data': partida.data,
@@ -69,7 +72,6 @@ def get_partidas():
             'rodada': partida.rodada
         } for partida in partidas]
         print(partidas_list)
-        # Retorna a lista de partidas como JSON
         return jsonify(partidas_list)
     
     except Exception as e:
@@ -78,5 +80,6 @@ def get_partidas():
 
     finally:
         session.close()  # Fecha a sessão
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

@@ -1,8 +1,7 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float,ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, ForeignKey
 from sqlalchemy.engine import URL
-from sqlalchemy.orm import declarative_base, sessionmaker,backref,relationship
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship, backref
 from datetime import datetime
-
 
 # Configuração da URL do banco de dados
 url = URL.create(
@@ -40,8 +39,7 @@ class Jogador(Base):
     duplos_duplos = Column(Float, nullable=False)  # 'DD'
     enterradas = Column(Float, nullable=False)  # 'EN'
     assistencias = Column(Float, nullable=False)  # 'AS'
-    time_fantasy = relationship("Time_fantasy", secondary="time_fantasy_jogador",back_populates="jogadores")
-    
+    time_fantasy = relationship("Time_fantasy", secondary="time_fantasy_jogador", back_populates="jogadores")
 
 # Definição da tabela Partidas
 class Partida(Base):
@@ -54,27 +52,27 @@ class Partida(Base):
     placar_casa = Column(Integer, nullable=False)
     placar_visitante = Column(Integer, nullable=False)
     rodada = Column(Integer, nullable=False)
-    fase = Column(String(100),nullable=False)
+    fase = Column(String(100), nullable=False)
+
 # Definição da tabela Usuarios com username como chave primária
 class Usuario(Base):
     __tablename__ = 'Usuarios'
 
     username = Column(String(50), primary_key=True, nullable=False)
     senha = Column(String(100), nullable=False)
-    #nome_time = Column(String(100), ForeignKey('Time.nome_time'), nullable=False)
-   
     emblema = Column(String(255), nullable=True)  
     dinheiro = Column(Float, nullable=False)  
     pontuacao = Column(Float, nullable=False)
     time_fantasy = relationship("Time_fantasy", back_populates="username", uselist=False)
 
+# Definição da tabela Time_fantasy
 class Time_fantasy(Base):
     __tablename__ = 'Time_fantasy'
 
     nome_time = Column(String(100), primary_key=True, nullable=False)
 
     # Relacionamento com a tabela Jogadores
-    jogadores = relationship("Jogador",secondary="time_fantasy_jogador", back_populates="time_fantasy")
+    jogadores = relationship("Jogador", secondary="time_fantasy_jogador", back_populates="time_fantasy")
 
     # Relacionamento de um-para-um com Usuario
     username = relationship("Usuario", back_populates="time_fantasy", uselist=False)
@@ -91,11 +89,9 @@ class Time_fantasy_jogador(Base):
     time = relationship("Time_fantasy", backref=backref("jogadores_assoc", cascade="all, delete-orphan"))
     jogador = relationship("Jogador", backref=backref("times_assoc", cascade="all, delete-orphan"))
 
-# Criação das tabelas no banco de dados
-Base.metadata.drop_all(engine)    
-###dica: dropa direto no sql se precisar dropar
+# Criação das tabelas no banco de dados (sem excluir dados existentes)
 Base.metadata.create_all(engine)
-#Base.metadata.create_all(engine, tables=[Jogador.__table__])
+
 # Configuração da sessão
 Session = sessionmaker(bind=engine)
 session = Session()

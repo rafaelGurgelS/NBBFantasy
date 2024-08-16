@@ -3,6 +3,7 @@ import { IconButton, FlatList, NativeBaseProvider, VStack, HStack, Box, Button, 
 import { FontAwesome } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native-paper';
 
+
 const EscalacaoScreen = () => {
   const [userMoney, setUserMoney] = useState(1000);
   const { isOpen, onOpen, onClose } = useDisclose();
@@ -29,7 +30,7 @@ const EscalacaoScreen = () => {
 
   const fetchJogadores = async () => {
     try {
-      const response = await fetch('http://192.168.243.4:5000/jogadores');
+      const response = await fetch('http://192.168.0.194:5000/jogadores');
       const data = await response.json();
       setDisponiveis({
         'Ala armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
@@ -53,7 +54,7 @@ const EscalacaoScreen = () => {
   };
 
   const buyPlayer = (jogador) => {
-    if (comprados[selectedPosition]?.key === jogador.key) {
+    if (comprados[selectedPosition]?.id === jogador.id) {
       alert('Este jogador já foi comprado.');
       return;
     }
@@ -104,16 +105,28 @@ const EscalacaoScreen = () => {
   const isComplete = Object.values(comprados).every(jogador => jogador !== null);
 
   function renderItem({ item }) {
+    const pontuacao = 
+    1.5 * item.arremessos_3pontos +
+    1 * item.arremessos_2pontos +
+    0.8 * item.lances_livres_convertidos +
+    1.5 * item.rebotes_totais +
+    1.5 * item.bolas_recuperadas +
+    1.5 * item.tocos +
+    -0.5 * item.erros +
+    5 * item.duplos_duplos +
+    2 * item.enterradas +
+    1.5 * item.assistencias;
+
     return (
       <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
         <VStack>
           <Text bold>{item.nome}</Text>
-          <Text>Pontuação: {item.pontuacao}</Text>
+          <Text>Pontuação: {pontuacao.toFixed(2)}</Text>
           <Text>Valor: R${item.valor}</Text>
           <Text>Time: {item.time}</Text>
           <Text>Posição: {item.posicao}</Text>
         </VStack>
-        {comprados[selectedPosition]?.key === item.key ? (
+        {comprados[selectedPosition]?.id === item.id ? (
           <HStack>
             <Text color="red.500">Comprado </Text>
             <Button colorScheme="red" borderRadius="20px" onPress={() => cancelPurchase(item)}>Cancelar</Button>
@@ -275,11 +288,11 @@ const EscalacaoScreen = () => {
             ) : (
               <FlatList
                 data={selectedPosition ? disponiveis[selectedPosition] : []}
-                keyExtractor={(item, index) => index.toString()}
+                keyExtractor={(item, index) => item.id.toString()}
                 renderItem={renderItem}
                 ListFooterComponent={!loading ? <ActivityIndicator size="large" color="#FC9904" /> : null}
                 onEndReached={handleEndReached}
-                onEndReachedThreshold={0.1}
+                onEndReachedThreshold={0.1}s
               />
             )}
           </Actionsheet.Content>
