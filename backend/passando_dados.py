@@ -70,7 +70,9 @@ def importar_partidas():
                     time_casa=row[2],
                     time_visitante=row[5],
                     placar_casa=int(row[3]),
-                    placar_visitante=int(row[4])
+                    placar_visitante=int(row[4]),
+                    fase=row[8]
+
                 )
                 session.add(partida)
             session.commit()
