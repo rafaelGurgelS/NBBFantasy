@@ -4,7 +4,7 @@ from flask import Flask, jsonify,request
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from create_tables import Jogador, Partida,Usuario
+from create_tables import Jogador, Partida,Usuario,Time_fantasy
 from sqlalchemy.engine import URL
 
 # Configuração da URL do banco de dados
@@ -33,7 +33,7 @@ def insert_usuario():
     senha = data.get('senha')
     
     # Criar novo usuário
-    novo_usuario = Usuario(username=username, senha=senha, dinheiro=1000.0, pontuacao=0.0)
+    novo_usuario = Usuario(username=username, senha=senha, dinheiro=100.0, pontuacao=0.0)
     
 
 
@@ -51,8 +51,53 @@ def insert_usuario():
         session.close()
 
 
+# Endpoint para criar um novo time
+@app.route('/insert_time', methods=['POST'])
+def criar_time():
+    data = request.get_json()
 
+    nome_time = data.get('nome_time')
+    username = data.get('username')
+    emblema = data.get('emblema')
 
+    # Verifica se os campos necessários estão presentes
+    if not nome_time or not username or not emblema:
+        return jsonify({'error': 'Todos os campos são obrigatórios.'}), 400
+
+    # Cria um novo time
+    novo_time = Time_fantasy(nome_time=nome_time, usuario=username, emblema=emblema)
+
+    try:
+        session.add(novo_time)
+        session.commit()
+        return jsonify({'message': 'Time criado com sucesso!'}), 201
+
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao criar time: {str(e)}")
+        return jsonify({'error': 'Erro ao criar time.'}), 500
+
+    finally:
+        session.close()
+
+@app.route('/get_user_info', methods=['GET'])
+def get_user_info():
+    username = request.args.get('username')
+    if not username:
+        return jsonify({'error': 'Username parameter is required'}), 400
+
+    user = session.query(Usuario).filter_by(username=username).first()
+
+    if user:
+        user_info = {
+            'teamName': user.time_fantasy.nome_time if user.time_fantasy else 'N/A',
+            'emblema': user.time_fantasy.emblema if user.time_fantasy else 'N/A',
+            'dinheiro': user.dinheiro,
+            'pontuacao': user.pontuacao
+        }
+        return jsonify(user_info), 200
+    else:
+        return jsonify({'error': 'User not found'}), 404
 
 
 # Endpoint para obter a lista de jogadores

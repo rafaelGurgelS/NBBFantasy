@@ -1,15 +1,15 @@
 import React, { createContext, useState } from 'react';
 
-// Criação do contexto global para o nome do time e emblema
+// Criação do contexto global para o username
 const GlobalContext = createContext();
 
 // Provedor do contexto global
 export const GlobalProvider = ({ children }) => {
-  const [teamName, setTeamName] = useState('');
-  const [selectedEmblem, setSelectedEmblem] = useState(null);
+  const [userName, setuserName] = useState('');
+  
 
   return (
-    <GlobalContext.Provider value={{ teamName, setTeamName, selectedEmblem, setSelectedEmblem }}>
+    <GlobalContext.Provider value={{ userName,setuserName }}>
       {children}
     </GlobalContext.Provider>
   );

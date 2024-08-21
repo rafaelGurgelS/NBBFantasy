@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext,useState,useEffect } from 'react';
 import {
   NativeBaseProvider,
   Box,
@@ -7,13 +7,66 @@ import {
   Button,
   Divider,
   Image, 
+  Spinner
 } from "native-base";
 import GlobalContext from '../../globalcontext';
 
 const backgroundImage = require("../../../assets/images/nbb-brasil.png");
 
 export default function HomeScreen() {
-  const { teamName, selectedEmblem } = useContext(GlobalContext);
+  const { userName, setuserName } = useContext(GlobalContext);
+  
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch(`http://192.168.1.193:5000/get_user_info?username=${userName}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserInfo(data);
+        } else {
+          const errorData = await response.json();
+          setError(errorData.error || 'Erro ao buscar informações do usuário');
+        }
+      } catch (err) {
+        setError('Erro ao se conectar com o servidor');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userName) {
+      fetchUserInfo();
+    }
+  }, [userName]);
+
+  if (loading) {
+    return (
+      <NativeBaseProvider>
+        <Box flex={1} justifyContent="center" alignItems="center">
+          <Spinner size="lg" />
+        </Box>
+      </NativeBaseProvider>
+    );
+  }
+
+  if (error) {
+    return (
+      <NativeBaseProvider>
+        <Box flex={1} justifyContent="center" alignItems="center">
+          <Text color="red.500">{error}</Text>
+        </Box>
+      </NativeBaseProvider>
+    );
+  }
+
+
+
+
+
 
   return (
     <NativeBaseProvider>
@@ -47,18 +100,18 @@ export default function HomeScreen() {
               width={24}
               height={24}
             >
-              <Text>{selectedEmblem}</Text> {/* Emblema */}
+              <Text>{userInfo.emblema}</Text> {/* Emblema */}
             </Box>
 
             {/* Nome do time */}
             <Box ml={10}>
-              <Heading size="sm">Time: {teamName}</Heading>
+              <Heading size="sm">Time: {userInfo.teamName}</Heading>
             </Box>
           </Box>
 
           {/* Texto "Pontuação Total" */}
           <Box mt={-13} ml={150}>
-            <Text>Pontuação Total:</Text>
+            <Text>Pontuação Total: </Text>
           </Box>
 
           {/* Caixa para dinheiro e pontuação total */}
@@ -72,7 +125,7 @@ export default function HomeScreen() {
               width={20}
               height={8}
             >
-              <Text>$100</Text>
+              <Text>{userInfo.dinheiro}</Text>
             </Box>
 
             {/* Caixa para pontuação total */}
@@ -84,7 +137,7 @@ export default function HomeScreen() {
               width={20}
               height={8}
             >
-              <Text>0</Text>
+              <Text>{userInfo.pontuacao}</Text>
             </Box>
           </Box>
 

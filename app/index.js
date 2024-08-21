@@ -13,6 +13,7 @@ import {
   HStack
 } from "native-base";
 import { useRouter, Link } from "expo-router";
+import GlobalContext from './globalcontext.js'; // Importe o contexto global
 
 export default function Home() {
   const router = useRouter();

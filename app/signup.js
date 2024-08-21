@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useContext } from "react";
 import {
   NativeBaseProvider,
   VStack,
@@ -13,10 +13,11 @@ import {
   HStack
 } from "native-base";
 import { useRouter } from "expo-router";
+import GlobalContext from './globalcontext.js'; // Importe o contexto global
 
 export default function Home() {
   const router = useRouter();
-  const [userName, setuserName] = useState("");
+  const { userName, setuserName } = useContext(GlobalContext);
   const [senha, setSenha] = useState("");
   const [senha2, setSenha2] = useState("");
   const toast = useToast();
@@ -60,7 +61,7 @@ export default function Home() {
 
       try {
         // Faz o POST para o endpoint de criação de usuário
-        const response = await fetch('http://localhost:5000/usuarios', {
+        const response = await fetch('http://192.168.1.193:5000/insert_usuario', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -70,6 +71,9 @@ export default function Home() {
 
         // Verifica se a resposta foi bem-sucedida
         if (response.ok) {
+
+
+          setuserName(userName);
           toast.show({
             title: "Sucesso",
             description: "Usuário criado com sucesso",
