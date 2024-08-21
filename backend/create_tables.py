@@ -60,7 +60,7 @@ class Usuario(Base):
 
     username = Column(String(50), primary_key=True, nullable=False)
     senha = Column(String(100), nullable=False)
-    emblema = Column(String(255), nullable=True)  
+     
     dinheiro = Column(Float, nullable=False)  
     pontuacao = Column(Float, nullable=False)
     time_fantasy = relationship("Time_fantasy", back_populates="username", uselist=False)
@@ -70,7 +70,7 @@ class Time_fantasy(Base):
     __tablename__ = 'Time_fantasy'
 
     nome_time = Column(String(100), primary_key=True, nullable=False)
-
+    emblema = Column(String(255), nullable=True) 
     # Relacionamento com a tabela Jogadores
     jogadores = relationship("Jogador", secondary="time_fantasy_jogador", back_populates="time_fantasy")
 

@@ -22,7 +22,7 @@ const PartidasScreen = () => {
 
   const fetchPartidas = async () => {
     try {
-      const response = await fetch('http://192.168.0.194:5000/partidas');
+      const response = await fetch('http://192.168.1.193:5000/partidas');
       const data = await response.json();
       setPartidas(data);
 
@@ -30,10 +30,10 @@ const PartidasScreen = () => {
       const uniqueRodadas = [...new Set(data.map(partida => partida.rodada))];
       setRodadas(uniqueRodadas);
       
-      // Definir a rodada atual como a primeira rodada disponível
+      // Definir a rodada "hoje" como a ultima rodada disponível
       if (uniqueRodadas.length > 0) {
         setRodadaAtual(uniqueRodadas[0]);
-        setRodadaHoje(uniqueRodadas[0])
+        setRodadaHoje(uniqueRodadas[uniqueRodadas.length - 1]);
       }
     } catch (error) {
       console.error('Erro ao buscar partidas:', error);

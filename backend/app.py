@@ -1,10 +1,10 @@
 import csv
 import pandas as pd
-from flask import Flask, jsonify
+from flask import Flask, jsonify,request
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from create_tables import Jogador, Partida
+from create_tables import Jogador, Partida,Usuario
 from sqlalchemy.engine import URL
 
 # Configuração da URL do banco de dados
@@ -23,6 +23,37 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 app = Flask(__name__)
+
+# Endpoint para criar um novo usuário
+@app.route('/insert_usuario', methods=['POST'])
+def insert_usuario():
+    data = request.get_json()
+    
+    username = data.get('username')
+    senha = data.get('senha')
+    
+    # Criar novo usuário
+    novo_usuario = Usuario(username=username, senha=senha, dinheiro=1000.0, pontuacao=0.0)
+    
+
+
+    try:
+        session.add(novo_usuario)
+        session.commit()
+        return jsonify({'message': 'Usuário criado com sucesso!'}), 201
+    
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao criar usuário: {str(e)}")
+        return jsonify({'error': 'Erro ao criar usuário'}), 500
+    
+    finally:
+        session.close()
+
+
+
+
+
 
 # Endpoint para obter a lista de jogadores
 @app.route('/jogadores', methods=['GET'])
