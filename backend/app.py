@@ -157,5 +157,32 @@ def get_partidas():
     finally:
         session.close()  # Fecha a sessão
 
+
+#Verificar Usuário no loging
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    senha = data.get('senha')
+    
+    # Verificar se o usuário existe
+    usuario = session.query(Usuario).filter_by(username=username).first()
+    
+    if not usuario:
+        return jsonify({"error": "Usuário não encontrado, registre-se!"}), 404
+    
+    # Verificar a senha
+    if usuario.senha != senha:
+        return jsonify({"error": "Senha incorreta"}), 403
+    
+    # Verificar se o usuário já tem um time associado
+    time_fantasy = session.query(Time_fantasy).filter_by(usuario=username).first()
+    
+    if time_fantasy:
+        return jsonify({"redirect": "home"})
+    else:
+        return jsonify({"redirect": "criarTime"})
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

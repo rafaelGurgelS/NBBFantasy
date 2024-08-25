@@ -23,7 +23,7 @@ export default function HomeScreen() {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch(`http://192.168.1.193:5000/get_user_info?username=${userName}`);
+        const response = await fetch(`http://192.168.0.194:5000/get_user_info?username=${userName}`);
         if (response.ok) {
           const data = await response.json();
           setUserInfo(data);

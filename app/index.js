@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext} from "react";
 import {
   NativeBaseProvider,
   VStack,
@@ -17,11 +17,12 @@ import GlobalContext from './globalcontext.js'; // Importe o contexto global
 
 export default function Home() {
   const router = useRouter();
-  const [userName, setuserName] = useState("");
   const [senha, setSenha] = useState("");
   const toast = useToast();
 
-  const handleLogin = () => {
+  const { userName, setuserName } = useContext(GlobalContext); // Usa o contexto global
+  
+  const handleLogin = async () => {
     if (!userName || !senha) {
       toast.show({
         title: "Erro",
@@ -30,8 +31,43 @@ export default function Home() {
         duration: 3000,
         isClosable: true,
       });
-    } else {
-      router.push("/criarTime");
+      return;
+    }
+
+    try {
+      const response = await fetch('http://192.168.0.194:5000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: userName, senha: senha }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.redirect === "home") {
+          router.push("/home");
+        } else if (data.redirect === "criarTime") {
+          router.push("/criarTime");
+        }
+      } else {
+        toast.show({
+          title: "Erro",
+          description: data.error,
+          status: "danger",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      toast.show({
+        title: "Erro",
+        description: "Erro de comunicação com o servidor",
+        status: "danger",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 

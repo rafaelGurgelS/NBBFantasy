@@ -56,7 +56,7 @@ export default function TeamCreationScreen() {
       
       // Enviando o POST request
       try {
-        const response = await fetch('http://192.168.1.193:5000/insert_time', {
+        const response = await fetch('http://192.168.0.194:5000/insert_time', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

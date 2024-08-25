@@ -61,7 +61,7 @@ export default function Home() {
 
       try {
         // Faz o POST para o endpoint de criação de usuário
-        const response = await fetch('http://192.168.1.193:5000/insert_usuario', {
+        const response = await fetch('http://192.168.0.194:5000/insert_usuario', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
