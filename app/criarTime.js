@@ -19,9 +19,8 @@ export default function TeamCreationScreen() {
   const router = useRouter();
   const toast = useToast();
 
-  const {userName, setuserName} =  useContext(GlobalContext);
-  //const { setTeamName, setSelectedEmblem } =useState(''); // Acesse as funções do contexto
-
+  const { userName, setuserName, ip, setIP, porta, setPorta} =  useContext(GlobalContext);
+  
   const [localTeamName, setLocalTeamName] = useState('');
   const [localSelectedEmblem, setLocalSelectedEmblem] = useState(null);
 
@@ -56,7 +55,7 @@ export default function TeamCreationScreen() {
       
       // Enviando o POST request
       try {
-        const response = await fetch('http://192.168.0.194:5000/insert_time', {
+        const response = await fetch(`http://${ip}:${porta}/insert_time`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

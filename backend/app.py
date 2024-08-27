@@ -158,7 +158,7 @@ def get_partidas():
         session.close()  # Fecha a sessão
 
 
-#Verificar Usuário no loging
+#Verificar Usuário no login
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json

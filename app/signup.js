@@ -17,7 +17,7 @@ import GlobalContext from './globalcontext.js'; // Importe o contexto global
 
 export default function Home() {
   const router = useRouter();
-  const { userName, setuserName } = useContext(GlobalContext);
+  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
   const [senha, setSenha] = useState("");
   const [senha2, setSenha2] = useState("");
   const toast = useToast();
@@ -61,7 +61,7 @@ export default function Home() {
 
       try {
         // Faz o POST para o endpoint de criação de usuário
-        const response = await fetch('http://192.168.0.194:5000/insert_usuario', {
+        const response = await fetch(`http://${ip}:${porta}/insert_usuario`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

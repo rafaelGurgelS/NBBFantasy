@@ -14,7 +14,7 @@ import GlobalContext from '../../globalcontext';
 const backgroundImage = require("../../../assets/images/nbb-brasil.png");
 
 export default function HomeScreen() {
-  const { userName, setuserName } = useContext(GlobalContext);
+  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
   
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,7 +23,7 @@ export default function HomeScreen() {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch(`http://192.168.0.194:5000/get_user_info?username=${userName}`);
+        const response = await fetch(`http://${ip}:${porta}/get_user_info?username=${userName}`);
         if (response.ok) {
           const data = await response.json();
           setUserInfo(data);

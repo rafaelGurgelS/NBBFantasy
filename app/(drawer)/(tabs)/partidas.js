@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useContext } from 'react';
 import { View, ActivityIndicator,TouchableOpacity,StyleSheet } from 'react-native';
 import { Text, Button, VStack, HStack, ScrollView, Center, Pressable,Box, Icon } from 'native-base';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import GlobalContext from '../../globalcontext';
 
 const PartidasScreen = () => {
+
+  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
   const [partidas, setPartidas] = useState([]);
   const [rodadaAtual, setRodadaAtual] = useState(null);
   const [rodadaHoje,setRodadaHoje] = useState(null);
@@ -22,7 +25,7 @@ const PartidasScreen = () => {
 
   const fetchPartidas = async () => {
     try {
-      const response = await fetch('http://192.168.0.194:5000/partidas');
+      const response = await fetch(`http://${ip}:${porta}/partidas`);
       const data = await response.json();
       setPartidas(data);
 

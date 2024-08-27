@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useContext } from 'react';
 import { IconButton, FlatList, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image, Flex } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native-paper';
+import GlobalContext from '../../globalcontext';
 
 
 const EscalacaoScreen = () => {
+  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
+  
   const [userMoney, setUserMoney] = useState(1000);
   const { isOpen, onOpen, onClose } = useDisclose();
   const [selectedPosition, setSelectedPosition] = useState(null);
@@ -30,7 +33,7 @@ const EscalacaoScreen = () => {
 
   const fetchJogadores = async () => {
     try {
-      const response = await fetch('http://192.168.0.194:5000/jogadores');
+      const response = await fetch(`http://${ip}:${porta}/jogadores`);
       const data = await response.json();
       setDisponiveis({
         'Ala armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),

@@ -20,7 +20,7 @@ export default function Home() {
   const [senha, setSenha] = useState("");
   const toast = useToast();
 
-  const { userName, setuserName } = useContext(GlobalContext); // Usa o contexto global
+  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext); // Usa o contexto global
   
   const handleLogin = async () => {
     if (!userName || !senha) {
@@ -35,7 +35,7 @@ export default function Home() {
     }
 
     try {
-      const response = await fetch('http://192.168.0.194:5000/login', {
+      const response = await fetch(`http://${ip}:${porta}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
