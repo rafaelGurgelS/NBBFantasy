@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext} from "react";
 import {
   NativeBaseProvider,
   VStack,
@@ -12,17 +12,18 @@ import {
   useToast,
   HStack
 } from "native-base";
-import { useRouter ,Link} from "expo-router";
+import { useRouter, Link } from "expo-router";
+import GlobalContext from './globalcontext.js'; // Importe o contexto global
 
 export default function Home() {
   const router = useRouter();
-  const [userName, setuserName] = useState("");
   const [senha, setSenha] = useState("");
   const toast = useToast();
 
-  const handleLogin = () => {
+  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext); // Usa o contexto global
+  
+  const handleLogin = async () => {
     if (!userName || !senha) {
-      // Se qualquer campo estiver vazio, exibe uma mensagem de aviso
       toast.show({
         title: "Erro",
         description: "Preencha todos os campos antes de continuar",
@@ -30,9 +31,43 @@ export default function Home() {
         duration: 3000,
         isClosable: true,
       });
-    } else {
-      // Se os campos não estiverem vazios, navega para a próxima tela
-      router.push("/criarTime"); // Muda o caminho para a rota da tela desejada
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://${ip}:${porta}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: userName, senha: senha }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.redirect === "home") {
+          router.push("/home");
+        } else if (data.redirect === "criarTime") {
+          router.push("/criarTime");
+        }
+      } else {
+        toast.show({
+          title: "Erro",
+          description: data.error,
+          status: "danger",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      toast.show({
+        title: "Erro",
+        description: "Erro de comunicação com o servidor",
+        status: "danger",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
@@ -54,6 +89,11 @@ export default function Home() {
             fontSize={16}
             value={userName}
             onChangeText={(text) => setuserName(text)}
+            borderColor="transparent" 
+            _focus={{
+              borderColor: "#FC9904", 
+              borderWidth: 2 
+            }}
           />
 
           <Input
@@ -67,6 +107,11 @@ export default function Home() {
             secureTextEntry
             value={senha}
             onChangeText={(text) => setSenha(text)}
+            borderColor="transparent" 
+            _focus={{
+              borderColor: "#FC9904", 
+              borderWidth: 2 
+            }}
           />
 
           <Button
@@ -92,8 +137,8 @@ export default function Home() {
             <Text mr={1} color="#A99797" textAlign="center">
               {"Não tem conta?"}
             </Text>
-            <Link href="/signup" _text={{ color: "blue.500" }}>
-                Registre-se!
+            <Link href="/signup" _text={{ color: "blue.100" }}>
+              Registre-se!
             </Link>
           </HStack>
         </Box>

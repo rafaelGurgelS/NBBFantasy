@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator,TouchableOpacity } from 'react-native';
-import { Text, Button, VStack, HStack, ScrollView, Center, Box, Icon } from 'native-base';
+import React, { useState, useEffect,useContext } from 'react';
+import { View, ActivityIndicator,TouchableOpacity,StyleSheet } from 'react-native';
+import { Text, Button, VStack, HStack, ScrollView, Center, Pressable,Box, Icon } from 'native-base';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import GlobalContext from '../../globalcontext';
 
 const PartidasScreen = () => {
+
+  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
   const [partidas, setPartidas] = useState([]);
   const [rodadaAtual, setRodadaAtual] = useState(null);
   const [rodadaHoje,setRodadaHoje] = useState(null);
@@ -16,14 +19,13 @@ const PartidasScreen = () => {
   );
 
 
-
   useEffect(() => {
     fetchPartidas();
   }, []);
 
   const fetchPartidas = async () => {
     try {
-      const response = await fetch('http://192.168.43.250:5000/partidas');
+      const response = await fetch(`http://${ip}:${porta}/partidas`);
       const data = await response.json();
       setPartidas(data);
 
@@ -31,10 +33,10 @@ const PartidasScreen = () => {
       const uniqueRodadas = [...new Set(data.map(partida => partida.rodada))];
       setRodadas(uniqueRodadas);
       
-      // Definir a rodada atual como a primeira rodada disponível
+      // Definir a rodada "hoje" como a ultima rodada disponível
       if (uniqueRodadas.length > 0) {
         setRodadaAtual(uniqueRodadas[0]);
-        setRodadaHoje(uniqueRodadas[0])
+        setRodadaHoje(uniqueRodadas[uniqueRodadas.length - 1]);
       }
     } catch (error) {
       console.error('Erro ao buscar partidas:', error);
@@ -66,6 +68,23 @@ const PartidasScreen = () => {
     
   }
 
+  const styles = StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    circleButton: {
+      backgroundColor: 'rgba(192,192,192,0.5)',
+      borderRadius: 50,
+      padding: 10,
+      margin: 5,
+    },
+    text: {
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+  });
+
 
 
   if (loading) {
@@ -75,6 +94,7 @@ const PartidasScreen = () => {
       </VStack>
     );
   }
+
 
   return (
     <VStack flex={1} justifyContent="center" alignItems="center" space={4} px={4}>
@@ -87,17 +107,31 @@ const PartidasScreen = () => {
       {rodadaAtual !== null && (
         <>
           <HStack space={4} alignItems="center" mt={4}>
-            <TouchableOpacity 
-           
-            onPress={handlePreviousPage}>
+          <Pressable onPress={handlePreviousPage}>
+            {({ isPressed }) => (
+              <Center
+                p={2}
+                bg={isPressed ? 'rgba(192,192,192,0.5)' : 'transparent'}
+                borderRadius="full"
+              >
                 <FontAwesome name="chevron-left" size={35} color="orange" />
-            </TouchableOpacity>
-            <Text fontSize="xl" fontWeight="bold">Rodada {rodadaAtual}</Text>
-            <TouchableOpacity 
-            
-             onPress={handleNextPage}>
+              </Center>
+            )}
+          </Pressable>
+      
+          <Text fontSize="xl" fontWeight="bold">Rodada {rodadaAtual}</Text>
+      
+          <Pressable onPress={handleNextPage}>
+            {({ isPressed }) => (
+              <Center
+                p={2}
+                bg={isPressed ? 'rgba(192,192,192,0.5)' : 'transparent'}
+                borderRadius='full'
+              >
                 <FontAwesome name="chevron-right" size={35} color="orange" />
-            </TouchableOpacity>
+              </Center>
+            )}
+          </Pressable>
            
           </HStack>
           <Box bg="gray.200" flex={1} rounded="md"  >

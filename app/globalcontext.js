@@ -1,15 +1,18 @@
 import React, { createContext, useState } from 'react';
 
-// Criação do contexto global para o nome do time e emblema
+// Criação do contexto global para o username
 const GlobalContext = createContext();
 
 // Provedor do contexto global
 export const GlobalProvider = ({ children }) => {
-  const [teamName, setTeamName] = useState('');
-  const [selectedEmblem, setSelectedEmblem] = useState(null);
+  const [userName, setuserName] = useState('');
+  const [ip, setIP] = useState('192.168.1.193');
+  const [porta, setPorta] = useState(5000);
+  
+  
 
   return (
-    <GlobalContext.Provider value={{ teamName, setTeamName, selectedEmblem, setSelectedEmblem }}>
+    <GlobalContext.Provider value={{ userName,setuserName,ip, setIP, porta, setPorta  }}>
       {children}
     </GlobalContext.Provider>
   );

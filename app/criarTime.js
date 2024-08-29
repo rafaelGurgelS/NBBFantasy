@@ -18,8 +18,9 @@ import GlobalContext from './globalcontext.js'; // Importe o contexto global
 export default function TeamCreationScreen() {
   const router = useRouter();
   const toast = useToast();
-  const { setTeamName, setSelectedEmblem } = useContext(GlobalContext); // Acesse as funções do contexto
 
+  const { userName, setuserName, ip, setIP, porta, setPorta} =  useContext(GlobalContext);
+  
   const [localTeamName, setLocalTeamName] = useState('');
   const [localSelectedEmblem, setLocalSelectedEmblem] = useState(null);
 
@@ -40,8 +41,9 @@ export default function TeamCreationScreen() {
     setLocalSelectedEmblem(id); // Muda a seleção localmente
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (!localTeamName || !localSelectedEmblem) {
+      // Exibe um aviso se os campos obrigatórios não estiverem preenchidos
       toast.show({
         title: 'Erro',
         description: 'Preencha o nome do time e escolha um emblema.',
@@ -50,15 +52,56 @@ export default function TeamCreationScreen() {
         isClosable: true,
       });
     } else {
-      // Atualiza os valores no contexto
-      setTeamName(localTeamName);
-      setSelectedEmblem(localSelectedEmblem);
-
-      // Navega para a tela Home
-      router.push('/(drawer)/(tabs)/home');
+      
+      // Enviando o POST request
+      try {
+        const response = await fetch(`http://${ip}:${porta}/insert_time`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nome_time: localTeamName,
+            username: userName, // Pegando o username do contexto
+            emblema: localSelectedEmblem,
+          }),
+        });
+  
+        const data = await response.json();
+  
+        if (response.ok) {
+          // Sucesso na criação do time, navega para a tela Home
+          toast.show({
+            title: 'Sucesso',
+            description: data.message || 'Time criado com sucesso!',
+            status: 'success',
+            duration: 3000,
+            isClosable: true,
+          });
+          router.push('/(drawer)/(tabs)/home');
+        } else {
+          // Erro na criação do time
+          toast.show({
+            title: 'Erro',
+            description: data.error || 'Erro ao criar o time.',
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      } catch (error) {
+        // Erro na requisição
+        toast.show({
+          title: 'Erro',
+          description: 'Erro ao se conectar ao servidor.',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     }
   };
-
+  
   return (
     <Center flex={1}>
       <VStack width="90%" space={5} alignItems="center" mt={-50}>

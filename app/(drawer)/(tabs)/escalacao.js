@@ -1,20 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import {IconButton,FlatList, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image } from 'native-base';
+import React, { useState, useEffect,useContext } from 'react';
+import { IconButton, FlatList, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image, Flex } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native-paper';
+import GlobalContext from '../../globalcontext';
 
 
 const EscalacaoScreen = () => {
+  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
+  
   const [userMoney, setUserMoney] = useState(1000);
   const { isOpen, onOpen, onClose } = useDisclose();
   const [selectedPosition, setSelectedPosition] = useState(null);
-  
+
   const [comprados, setComprados] = useState({
     'Ala armador': null,
     'Armador': null,
-   'Pivô': null,
-   'Ala pivô': null,
-   'Ala': null
+    'Pivô': null,
+    'Ala pivô': null,
+    'Ala': null
   });
   const [disponiveis, setDisponiveis] = useState({
     'Ala armador': [],
@@ -30,7 +33,7 @@ const EscalacaoScreen = () => {
 
   const fetchJogadores = async () => {
     try {
-      const response = await fetch('http://192.168.43.250:5000/jogadores');
+      const response = await fetch(`http://${ip}:${porta}/jogadores`);
       const data = await response.json();
       setDisponiveis({
         'Ala armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
@@ -50,11 +53,11 @@ const EscalacaoScreen = () => {
     onOpen();
     setTimeout(() => {
       setListLoading(false);
-    }, 1000); 
+    }, 1000);
   };
 
   const buyPlayer = (jogador) => {
-    if (comprados[selectedPosition]?.key === jogador.key) {
+    if (comprados[selectedPosition]?.id === jogador.id) {
       alert('Este jogador já foi comprado.');
       return;
     }
@@ -76,7 +79,6 @@ const EscalacaoScreen = () => {
   };
 
   const cancelPurchase = (jogador) => {
-    
     const newMoney = userMoney + jogador.valor;
     setUserMoney(newMoney);
 
@@ -85,9 +87,6 @@ const EscalacaoScreen = () => {
       updatedComprados[selectedPosition] = null;
       return updatedComprados;
     });
-
-    
-
   };
 
   const renderButtonIcon = (position) => {
@@ -95,36 +94,54 @@ const EscalacaoScreen = () => {
     if (player) {
       return (
         <HStack position="relative">
-          <FontAwesome name="user-circle" size={40} color="black" />
+          <FontAwesome name="user-circle" size={35} color="black" />
           <FontAwesome name="check-circle" size={20} color="green" style={{ position: 'absolute', top: -8, right: -8 }} />
         </HStack>
       );
     } else {
       return (
-        <FontAwesome name="user-circle" size={40} color="black" />
+        <FontAwesome name="user-circle" size={35} color="black" />
       );
     }
   };
 
   const isComplete = Object.values(comprados).every(jogador => jogador !== null);
 
-  function renderItem({item}) {
+  function renderItem({ item }) {
+    const pontuacao = 
+    1.5 * item.arremessos_3pontos +
+    1 * item.arremessos_2pontos +
+    0.8 * item.lances_livres_convertidos +
+    1.5 * item.rebotes_totais +
+    1.5 * item.bolas_recuperadas +
+    1.5 * item.tocos +
+    -0.5 * item.erros +
+    5 * item.duplos_duplos +
+    2 * item.enterradas +
+    1.5 * item.assistencias;
+
     return (
       <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
         <VStack>
           <Text bold>{item.nome}</Text>
-          <Text>Pontuação: {item.pontuacao}</Text>
+          <Text>Pontuação: {pontuacao.toFixed(2)}</Text>
           <Text>Valor: R${item.valor}</Text>
           <Text>Time: {item.time}</Text>
           <Text>Posição: {item.posicao}</Text>
         </VStack>
-        {comprados[selectedPosition]?.key === item.key ? (
+        {comprados[selectedPosition]?.id === item.id ? (
           <HStack>
             <Text color="red.500">Comprado </Text>
-            <Button colorScheme="red" onPress={() => cancelPurchase(item)}>Cancelar</Button>
+            <Button colorScheme="red" borderRadius="20px" onPress={() => cancelPurchase(item)}>Cancelar</Button>
           </HStack>
         ) : (
-          <Button onPress={() => buyPlayer(item)}>Comprar</Button>
+          <Button
+            bg="orange.400"
+            onPress={() => buyPlayer(item)}
+            borderRadius="20px"
+          >
+          Comprar
+          </Button>
         )}
       </HStack>
     )
@@ -137,52 +154,32 @@ const EscalacaoScreen = () => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-    }, 1000); 
+    }, 1000);
   };
-
 
   return (
     <NativeBaseProvider>
-      <VStack flex={1} justifyContent="center" alignItems="center">
-        <Box
-          position="absolute"
-          top={4}
-          left={4}
-          backgroundColor="green.500"
-          borderRadius={10}
-          p={2}
-        >
-          <Text color="white" fontWeight="bold">R${userMoney}</Text>
-        </Box>
-
-        <Box
-          position="absolute"
-          top={4}
-          right={4}
-          backgroundColor={isComplete ? "green.500" : "red.500"}
-          borderRadius={10}
-          p={2}
-        >
-          <HStack alignItems="center">
+      <VStack flex={1} justifyContent="flex-start" alignItems="center">
+        
+        <HStack w="100%" py={4} bg="warmGray.400" justifyContent="space-between" alignItems="center" px={4}>
+          <Flex flex={1} alignItems="center">
+            <Text color="white" fontWeight="bold">R${userMoney.toFixed(2)}</Text>
+          </Flex>
+          <Flex flex={1} alignItems="center">
+            <Text color="white" fontWeight="bold">Rodada: 1</Text>
+          </Flex>
+          <Flex flex={1} alignItems="center" flexDirection="row" justifyContent="center">
             <FontAwesome name={isComplete ? "check-circle" : "times-circle"} size={24} color="white" />
             <Text color="white" fontWeight="bold" ml={2}>
               {isComplete ? "Completa" : "Incompleta"}
             </Text>
-          </HStack>
-        </Box>
+          </Flex>
+        </HStack>
 
-        <Box
-          mt={-10}
-          borderRadius={10}
-          opacity={0.9}
-          width="75%"
-          height="50%"
-          justifyContent="center"
-          alignItems="center"
-          position="relative"
-        >
+
+        <Box flex={1} w="100%">
           <Image
-            source={require('../../../assets/images/quadra2.jpg')}
+            source={require('../../../assets/images/quadra_nova.jpg')}
             alt="Quadra de basquete"
             style={{ width: '100%', height: '100%', position: 'absolute' }}
           />
@@ -190,30 +187,34 @@ const EscalacaoScreen = () => {
           <VStack flex={1} alignItems="center" py={4} position="relative">
             <HStack space={6} position="absolute" top="20%">
               <VStack alignItems="center">
-                <Button
+                <IconButton
                   size="lg"
                   borderRadius="full"
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('Ala armador')}
+                  borderColor="orange.400"
+                  borderWidth={2}
+                  icon={renderButtonIcon('Ala armador')}
                   onPress={() => selectPosition('Ala armador')}
                   mb={2}
                 />
-                {comprados['Ala armador'] && <Text style={{fontWeight: 'bold', fontSize: 14 }} >
+                {comprados['Ala armador'] && <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
                   {comprados['Ala armador'].nome}</Text>}
               </VStack>
               <VStack alignItems="center">
-                <Button
+                <IconButton
                   size="lg"
                   borderRadius="full"
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('Armador')}
+                  borderColor="orange.400"
+                  borderWidth={2}
+                  icon={renderButtonIcon('Armador')}
                   onPress={() => selectPosition('Armador')}
                   mb={2}
-                  style={{top: -40}}
+                  style={{ top: -40 }}
                 />
                 {comprados['Armador'] && (
                   <Text textAlign="center" style={{ marginTop: -40, fontWeight: 'bold', fontSize: 14 }}>
@@ -222,48 +223,54 @@ const EscalacaoScreen = () => {
                 )}
               </VStack>
               <VStack alignItems="center">
-                <Button
+                <IconButton
                   size="lg"
                   borderRadius="full"
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('Pivô')}
+                  borderColor="orange.400"
+                  borderWidth={2}
+                  icon={renderButtonIcon('Pivô')}
                   onPress={() => selectPosition('Pivô')}
                   mb={2}
                 />
-                {comprados['Pivô'] && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
+                {comprados['Pivô'] && <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
                   {comprados['Pivô'].nome}</Text>}
               </VStack>
             </HStack>
 
             <HStack space={10} position="absolute" bottom="15%">
               <VStack alignItems="center">
-                <Button
+                <IconButton
                   size="lg"
                   borderRadius="full"
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('Ala pivô')}
+                  borderColor="orange.400"
+                  borderWidth={2}
+                  icon={renderButtonIcon('Ala pivô')}
                   onPress={() => selectPosition('Ala pivô')}
                   mb={2}
                 />
-                {comprados['Ala pivô'] && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
+                {comprados['Ala pivô'] && <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
                   {comprados['Ala pivô'].nome}</Text>}
               </VStack>
               <VStack alignItems="center">
-                <Button
+                <IconButton
                   size="lg"
                   borderRadius="full"
                   backgroundColor="white"
                   width={16}
                   height={16}
-                  startIcon={renderButtonIcon('Ala')}
+                  borderColor="orange.400"
+                  borderWidth={2}
+                  icon={renderButtonIcon('Ala')}
                   onPress={() => selectPosition('Ala')}
                   mb={2}
                 />
-                {comprados['Ala'] && <Text style={{fontWeight: 'bold', fontSize: 14 }}>
+                {comprados['Ala'] && <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
                   {comprados['Ala'].nome}</Text>}
               </VStack>
             </HStack>
@@ -284,17 +291,15 @@ const EscalacaoScreen = () => {
             ) : (
               <FlatList
                 data={selectedPosition ? disponiveis[selectedPosition] : []}
-                keyExtractor={(item, index) => index.toString()}
+                keyExtractor={(item, index) => item.id.toString()}
                 renderItem={renderItem}
                 ListFooterComponent={!loading ? <ActivityIndicator size="large" color="#FC9904" /> : null}
                 onEndReached={handleEndReached}
-                onEndReachedThreshold={0.1}
-              
+                onEndReachedThreshold={0.1}s
               />
             )}
           </Actionsheet.Content>
         </Actionsheet>
-
       </VStack>
     </NativeBaseProvider>
   );

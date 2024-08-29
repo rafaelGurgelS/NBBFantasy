@@ -1,60 +1,188 @@
 import csv
-from flask import Flask, jsonify
+import pandas as pd
+from flask import Flask, jsonify,request
+from datetime import datetime
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from create_tables import Jogador, Partida,Usuario,Time_fantasy
+from sqlalchemy.engine import URL
+
+# Configuração da URL do banco de dados
+url = URL.create(
+    drivername="postgresql+psycopg2",
+    username="postgres",
+    host="localhost",
+    database="nbb",
+    password="admin",
+    port="5432"
+)
+
+# Criação do engine e conexão com o banco de dados
+engine = create_engine(url)
+Session = sessionmaker(bind=engine)
+session = Session()
 
 app = Flask(__name__)
+
+# Endpoint para criar um novo usuário
+@app.route('/insert_usuario', methods=['POST'])
+def insert_usuario():
+    data = request.get_json()
+    
+    username = data.get('username')
+    senha = data.get('senha')
+    
+    # Criar novo usuário
+    novo_usuario = Usuario(username=username, senha=senha, dinheiro=100.0, pontuacao=0.0)
+    
+
+
+    try:
+        session.add(novo_usuario)
+        session.commit()
+        return jsonify({'message': 'Usuário criado com sucesso!'}), 201
+    
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao criar usuário: {str(e)}")
+        return jsonify({'error': 'Erro ao criar usuário'}), 500
+    
+    finally:
+        session.close()
+
+
+# Endpoint para criar um novo time
+@app.route('/insert_time', methods=['POST'])
+def criar_time():
+    data = request.get_json()
+
+    nome_time = data.get('nome_time')
+    username = data.get('username')
+    emblema = data.get('emblema')
+
+    # Verifica se os campos necessários estão presentes
+    if not nome_time or not username or not emblema:
+        return jsonify({'error': 'Todos os campos são obrigatórios.'}), 400
+
+    # Cria um novo time
+    novo_time = Time_fantasy(nome_time=nome_time, usuario=username, emblema=emblema)
+
+    try:
+        session.add(novo_time)
+        session.commit()
+        return jsonify({'message': 'Time criado com sucesso!'}), 201
+
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao criar time: {str(e)}")
+        return jsonify({'error': 'Erro ao criar time.'}), 500
+
+    finally:
+        session.close()
+
+@app.route('/get_user_info', methods=['GET'])
+def get_user_info():
+    username = request.args.get('username')
+    if not username:
+        return jsonify({'error': 'Username parameter is required'}), 400
+
+    user = session.query(Usuario).filter_by(username=username).first()
+
+    if user:
+        user_info = {
+            'teamName': user.time_fantasy.nome_time if user.time_fantasy else 'N/A',
+            'emblema': user.time_fantasy.emblema if user.time_fantasy else 'N/A',
+            'dinheiro': user.dinheiro,
+            'pontuacao': user.pontuacao
+        }
+        return jsonify(user_info), 200
+    else:
+        return jsonify({'error': 'User not found'}), 404
+
 
 # Endpoint para obter a lista de jogadores
 @app.route('/jogadores', methods=['GET'])
 def get_jogadores():
-    jogadores = []
-
-    # Leitura do arquivo CSV e construção da lista de jogadores
     try:
-        with open('nbb_estatisticas.csv', mode='r', encoding='utf-8-sig') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                jogador = {
-                    'key' : row['key'],
-                    'nome': row['Jogador'],
-                    'pontuacao': float(row['PTS']),
-                    'valor': float(row['PTS']),
-                    'time': row['Equipe'],
-                    'posicao': row['Posicao']
-                }
-                jogadores.append(jogador)
-
-        return jsonify(jogadores)
+        jogadores = session.query(Jogador).all()
+        jogadores_list = []
+        for jogador in jogadores:
+            jogadores_list.append({
+                'id': jogador.id,
+                'nome': jogador.nome,
+                'valor': jogador.valor,
+                'time': jogador.time,
+                'posicao': jogador.posicao,
+                'arremessos_3pontos': jogador.arremessos_3pontos,
+                'arremessos_2pontos': jogador.arremessos_2pontos,
+                'lances_livres_convertidos': jogador.lances_livres_convertidos,
+                'rebotes_totais': jogador.rebotes_totais,
+                'bolas_recuperadas': jogador.bolas_recuperadas,
+                'tocos': jogador.tocos,
+                'erros': jogador.erros,
+                'duplos_duplos': jogador.duplos_duplos,
+                'enterradas': jogador.enterradas,
+                'assistencias': jogador.assistencias
+            })
+        return jsonify(jogadores_list)
     
     except Exception as e:
-        print(f"Erro ao ler CSV: {str(e)}")
-        return jsonify({'error': 'Erro ao ler CSV'}), 500
+        print(f"Erro ao consultar o banco de dados: {str(e)}")
+        return jsonify({'error': 'Erro ao consultar o banco de dados'}), 500
+    finally:
+        session.close()  # Fecha a sessão
 
 # Endpoint para obter a lista de partidas
 @app.route('/partidas', methods=['GET'])
 def get_partidas():
-    partidas = []
-
-    # Leitura do arquivo CSV e construção da lista de partidas
+    session = Session()
     try:
-        with open('nbb_partidas.csv', mode='r', encoding='utf-8-sig') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if(row['FASE']=='1º TURNO'):
-                    partida = {
-                        'data': row['DATA'],
-                        'time_casa': row['EQUIPE CASA'],
-                        'time_visitante': row['EQUIPE VISITANTE'],
-                        'placar_casa': row['PLACAR CASA'],
-                        'placar_visitante': row['PLACAR VISITANTE'],
-                        'rodada': row['RODADA']
-                    }
-                    partidas.append(partida)
-
-        return jsonify(partidas)
+        partidas = session.query(Partida).all()
+        partidas_list = [{
+            'id': partida.id,
+            'data': partida.data,
+            'time_casa': partida.time_casa,
+            'time_visitante': partida.time_visitante,
+            'placar_casa': partida.placar_casa,
+            'placar_visitante': partida.placar_visitante,
+            'rodada': partida.rodada
+        } for partida in partidas]
+        print(partidas_list)
+        return jsonify(partidas_list)
     
     except Exception as e:
-        print(f"Erro ao ler CSV: {str(e)}")
-        return jsonify({'error': 'Erro ao ler CSV'}), 500
+        print(f"Erro ao consultar o banco de dados: {str(e)}")
+        return jsonify({'error': 'Erro ao consultar o banco de dados'}), 500
+
+    finally:
+        session.close()  # Fecha a sessão
+
+
+#Verificar Usuário no login
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    senha = data.get('senha')
+    
+    # Verificar se o usuário existe
+    usuario = session.query(Usuario).filter_by(username=username).first()
+    
+    if not usuario:
+        return jsonify({"error": "Usuário não encontrado, registre-se!"}), 404
+    
+    # Verificar a senha
+    if usuario.senha != senha:
+        return jsonify({"error": "Senha incorreta"}), 403
+    
+    # Verificar se o usuário já tem um time associado
+    time_fantasy = session.query(Time_fantasy).filter_by(usuario=username).first()
+    
+    if time_fantasy:
+        return jsonify({"redirect": "home"})
+    else:
+        return jsonify({"redirect": "criarTime"})
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

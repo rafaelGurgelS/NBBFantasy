@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useContext } from "react";
 import {
   NativeBaseProvider,
   VStack,
@@ -13,15 +13,16 @@ import {
   HStack
 } from "native-base";
 import { useRouter } from "expo-router";
+import GlobalContext from './globalcontext.js'; // Importe o contexto global
 
 export default function Home() {
   const router = useRouter();
-  const [userName, setuserName] = useState("");
+  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
   const [senha, setSenha] = useState("");
   const [senha2, setSenha2] = useState("");
   const toast = useToast();
 
-  const handleLogin = () => {
+  const handleLogin  = async() => {
     if (!userName || !senha) {
       // Se qualquer campo estiver vazio, exibe uma mensagem de aviso
       toast.show({
@@ -52,8 +53,55 @@ export default function Home() {
       });
     }
     else {
-      // Se os campos não estiverem vazios, navega para a próxima tela
-      router.push("/criarTime"); // Muda o caminho para a rota da tela desejada
+          // Monta o payload (os dados que serão enviados)
+      const userData = {
+        username: userName,
+        senha: senha,
+      };
+
+      try {
+        // Faz o POST para o endpoint de criação de usuário
+        const response = await fetch(`http://${ip}:${porta}/insert_usuario`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(userData), // Converte os dados para JSON
+        });
+
+        // Verifica se a resposta foi bem-sucedida
+        if (response.ok) {
+
+
+          setuserName(userName);
+          toast.show({
+            title: "Sucesso",
+            description: "Usuário criado com sucesso",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+          router.push("/criarTime");
+        } else {
+          const errorData = await response.json();
+          toast.show({
+            title: "Erro",
+            description: errorData.error || "Erro ao criar usuário",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      } catch (error) {
+        toast.show({
+          title: "Erro",
+          description: "Erro ao se conectar com o servidor",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+     
     }
   };
 
