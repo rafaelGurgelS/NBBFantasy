@@ -134,7 +134,7 @@ const PartidasScreen = () => {
           </Pressable>
            
           </HStack>
-          <Box bg="gray.200" flex={1} rounded="md"  >
+          <Box bg="white" flex={1} rounded="md"  >
             <ScrollView width="100%">
             {partidasPorRodada.map((partida, index) => (
               <View key={index}>

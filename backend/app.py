@@ -4,7 +4,7 @@ from flask import Flask, jsonify,request
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from create_tables import Jogador, Partida,Usuario,Time_fantasy
+import create_tables_2 as db
 from sqlalchemy.engine import URL
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -28,9 +28,34 @@ session = Session()
 app = Flask(__name__)
 scheduler = BackgroundScheduler()
 
+current_round_id = 0
+
+
+
 def my_cron_job():
+    global current_round_id
     # Code to be executed by the cron job
-    print('Hello from my cron job!')
+    if current_round_id == 0:
+        first_round = session.query(db.Round).order_by(db.Round.id).first()
+        if first_round:
+            current_round_id = first_round.id
+        return
+
+    # Obter a próxima rodada com ID maior que o current_round_id
+
+    ###quando ajeitarmos a questao das datas das partidas, podemos colocar data de inicio e fim
+    ##como atributos das rodadas. so nao quis fazer isso pq eh um saco mudar a data o tempo todo
+    ### ai com data teria um if a mais aqui
+    next_round = session.query(db.Round).filter(db.Round.id > current_round_id).order_by(db.Round.id).first()
+
+    if next_round:
+        # Se encontrar a próxima rodada, atualiza o current_round_id
+        current_round_id = next_round.id
+    else:
+        # Se não houver uma próxima rodada (estamos na última), volta para a primeira rodada
+        first_round = session.query(db.Round).order_by(db.Round.id).first()
+        if first_round:
+            current_round_id = first_round.id
 
 # Endpoint para criar um novo usuário
 @app.route('/insert_usuario', methods=['POST'])
@@ -41,7 +66,7 @@ def insert_usuario():
     senha = data.get('senha')
     
     # Criar novo usuário
-    novo_usuario = Usuario(username=username, senha=senha, dinheiro=100.0, pontuacao=0.0)
+    novo_usuario = db.User(username=username, password=senha, money=100.0)
     
 
 
@@ -73,7 +98,7 @@ def criar_time():
         return jsonify({'error': 'Todos os campos são obrigatórios.'}), 400
 
     # Cria um novo time
-    novo_time = Time_fantasy(nome_time=nome_time, usuario=username, emblema=emblema)
+    novo_time = db.FantasyTeam(team_name=nome_time, username=username, emblem=emblema)
 
     try:
         session.add(novo_time)
@@ -94,14 +119,14 @@ def get_user_info():
     if not username:
         return jsonify({'error': 'Username parameter is required'}), 400
 
-    user = session.query(Usuario).filter_by(username=username).first()
+    user = session.query(db.User).filter_by(username=username).first()
 
     if user:
         user_info = {
-            'teamName': user.time_fantasy.nome_time if user.time_fantasy else 'N/A',
-            'emblema': user.time_fantasy.emblema if user.time_fantasy else 'N/A',
-            'dinheiro': user.dinheiro,
-            'pontuacao': user.pontuacao
+            'teamName': user.fantasy_team.team_name if user.fantasy_team else 'N/A',
+            'emblema': user.fantasy_team.emblem if user.fantasy_team else 'N/A',
+            'dinheiro': user.money,
+            'pontuacao': '--'
         }
         return jsonify(user_info), 200
     else:
@@ -112,25 +137,16 @@ def get_user_info():
 @app.route('/jogadores', methods=['GET'])
 def get_jogadores():
     try:
-        jogadores = session.query(Jogador).all()
+        jogadores = session.query(db.Player).all()
         jogadores_list = []
         for jogador in jogadores:
             jogadores_list.append({
                 'id': jogador.id,
-                'nome': jogador.nome,
-                'valor': jogador.valor,
-                'time': jogador.time,
-                'posicao': jogador.posicao,
-                'arremessos_3pontos': jogador.arremessos_3pontos,
-                'arremessos_2pontos': jogador.arremessos_2pontos,
-                'lances_livres_convertidos': jogador.lances_livres_convertidos,
-                'rebotes_totais': jogador.rebotes_totais,
-                'bolas_recuperadas': jogador.bolas_recuperadas,
-                'tocos': jogador.tocos,
-                'erros': jogador.erros,
-                'duplos_duplos': jogador.duplos_duplos,
-                'enterradas': jogador.enterradas,
-                'assistencias': jogador.assistencias
+                'nome': jogador.name,
+                'valor': jogador.value,
+                'time': jogador.real_team,
+                'posicao': jogador.position,
+                
             })
         return jsonify(jogadores_list)
     
@@ -143,19 +159,22 @@ def get_jogadores():
 # Endpoint para obter a lista de partidas
 @app.route('/partidas', methods=['GET'])
 def get_partidas():
+    global current_round_id
     session = Session()
     try:
-        partidas = session.query(Partida).all()
+
+        ###filtrar pelo numero da rodada atual
+        partidas = session.query(db.Match).filter(db.Match.round <= current_round_id).all()
         partidas_list = [{
             'id': partida.id,
-            'data': partida.data,
-            'time_casa': partida.time_casa,
-            'time_visitante': partida.time_visitante,
-            'placar_casa': partida.placar_casa,
-            'placar_visitante': partida.placar_visitante,
-            'rodada': partida.rodada
+            'data': partida.date,
+            'time_casa': partida.house_team,
+            'time_visitante': partida.visit_team,
+            'placar_casa': partida.house_score,
+            'placar_visitante': partida.visit_score,
+            'rodada': partida.round
         } for partida in partidas]
-        print(partidas_list)
+       
         return jsonify(partidas_list)
     
     except Exception as e:
@@ -174,17 +193,17 @@ def login():
     senha = data.get('senha')
     
     # Verificar se o usuário existe
-    usuario = session.query(Usuario).filter_by(username=username).first()
+    usuario = session.query(db.User).filter_by(username=username).first()
     
     if not usuario:
         return jsonify({"error": "Usuário não encontrado, registre-se!"}), 404
     
     # Verificar a senha
-    if usuario.senha != senha:
+    if usuario.password != senha:
         return jsonify({"error": "Senha incorreta"}), 403
     
     # Verificar se o usuário já tem um time associado
-    time_fantasy = session.query(Time_fantasy).filter_by(usuario=username).first()
+    time_fantasy = session.query(db.FantasyTeam).filter_by(username=username).first()
     
     if time_fantasy:
         return jsonify({"redirect": "home"})
@@ -194,7 +213,7 @@ def login():
 
 scheduler.add_job(
     func=my_cron_job,
-    trigger=IntervalTrigger(seconds=10),
+    trigger=IntervalTrigger(seconds=60),
 ) 
 
 scheduler.start()
