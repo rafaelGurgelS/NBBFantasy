@@ -7,6 +7,9 @@ from sqlalchemy.orm import sessionmaker
 from create_tables import Jogador, Partida,Usuario,Time_fantasy
 from sqlalchemy.engine import URL
 
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+
 # Configuração da URL do banco de dados
 url = URL.create(
     drivername="postgresql+psycopg2",
@@ -23,6 +26,11 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 app = Flask(__name__)
+scheduler = BackgroundScheduler()
+
+def my_cron_job():
+    # Code to be executed by the cron job
+    print('Hello from my cron job!')
 
 # Endpoint para criar um novo usuário
 @app.route('/insert_usuario', methods=['POST'])
@@ -183,6 +191,13 @@ def login():
     else:
         return jsonify({"redirect": "criarTime"})
 
+
+scheduler.add_job(
+    func=my_cron_job,
+    trigger=IntervalTrigger(seconds=10),
+) 
+
+scheduler.start()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
