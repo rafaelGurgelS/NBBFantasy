@@ -29,7 +29,6 @@ export default function DrawerLayout() {
 
     const activeRoute = findActiveRoute(state);
 
-    // Verifique se o título atual é '(drawer)' e ajuste para o título inicial correto
     if (activeRoute === '(drawer)' || activeRoute === '(tabs)') {
       setHeaderTitle('Home');
     } else {
