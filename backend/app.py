@@ -1,12 +1,13 @@
 import csv
 import pandas as pd
+import numpy as np
 from flask import Flask, jsonify,request
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from create_tables import Jogador, Partida,Usuario,Time_fantasy
+import create_tables_2 as db
 from sqlalchemy.engine import URL
-
+from flask_socketio import SocketIO, emit
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
@@ -26,11 +27,112 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 scheduler = BackgroundScheduler()
 
+current_round_id = 0
+
 def my_cron_job():
+    global current_round_id
     # Code to be executed by the cron job
-    print('Hello from my cron job!')
+    if current_round_id == 0:
+        first_round = session.query(db.Round).order_by(db.Round.id).first()
+        if first_round:
+            current_round_id = first_round.id
+        print(f"Rodada atual: {current_round_id}")
+        update_player_actions_for_round(current_round_id, df_stat)
+        socketio.emit('update', {'current_round_id': current_round_id})
+        return
+
+    # Obter a próxima rodada com ID maior que o current_round_id
+
+    ###quando ajeitarmos a questao das datas das partidas, podemos colocar data de inicio e fim
+    ##como atributos das rodadas. so nao quis fazer isso pq eh um saco mudar a data o tempo todo
+    ### ai com data teria um if a mais aqui
+    next_round = session.query(db.Round).filter(db.Round.id > current_round_id).order_by(db.Round.id).first()
+
+    if next_round:
+        # Se encontrar a próxima rodada, atualiza o current_round_id
+        current_round_id = next_round.id
+    else:
+        # Se não houver uma próxima rodada (estamos na última), volta para a primeira rodada
+        first_round = session.query(db.Round).order_by(db.Round.id).first()
+        if first_round:
+            current_round_id = first_round.id
+
+    print(f"Rodada atual: {current_round_id}")
+    update_player_actions_for_round(current_round_id, df_stat)
+    socketio.emit('update', {'current_round_id': current_round_id})
+
+
+# Ler o CSV
+df_stat = pd.read_csv('nbb_estatisticas.csv', header=0)
+
+# Mapeamento das estatísticas
+df_stat['arremessos_3pontos'] = df_stat['3PC'].astype(int)
+df_stat['arremessos_2pontos'] = df_stat['2PC'].astype(int)
+df_stat['lances_livres_convertidos'] = df_stat['LLC'].astype(int)
+df_stat['rebotes_totais'] = df_stat['RT'].astype(int)
+df_stat['bolas_recuperadas'] = df_stat['BR'].astype(int)
+df_stat['tocos'] = df_stat['TO'].astype(int)
+df_stat['erros'] = df_stat['ER'].astype(int)
+df_stat['duplos_duplos'] = df_stat['DD'].astype(int)
+df_stat['enterradas'] = df_stat['EN'].astype(int)
+df_stat['assistencias'] = df_stat['AS'].astype(int)
+
+
+
+def generate_random_variation(stat_value, variation_range=10):
+    return max(0, int(stat_value + np.random.uniform(-variation_range, variation_range)))
+
+
+def update_player_actions_for_round(round_id, df_stat):
+    # Mapeamento dos IDs de ações diretamente
+    action_ids = {
+        'arremessos_3pontos': 1,
+        'arremessos_2pontos': 2,
+        'lances_livres_convertidos': 3,
+        'rebotes_totais': 4,
+        'bolas_recuperadas': 5,
+        'tocos': 6,
+        'erros': 7,
+        'duplos_duplos': 8,
+        'enterradas': 9,
+        'assistencias': 10
+    }
+
+    # Iterar sobre cada jogador no DataFrame
+    for _, row in df_stat.iterrows():
+        player_id = row['ID'] 
+
+        # Para cada estatística (ação), cria uma associação separada
+        for stat_key, action_id in action_ids.items():
+            # Gerar a variação aleatória para essa estatística
+            stat_value = generate_random_variation(row[stat_key])
+
+            # Criar um registro de ação para o jogador, ação e rodada
+            try:
+                action_record = db.PlayerTakesAction(
+                    player_id=player_id,
+                    round_id=round_id,
+                    action_id=action_id,
+                    stat_value=stat_value  # Valor da pontuação com variação
+                )
+                session.add(action_record)
+            except Exception as e:
+                session.rollback()
+                print(f"Erro ao inserir a ação {stat_key} do jogador {player_id}: {str(e)}")
+
+    # Commit para salvar todas as ações no banco de dados
+    try:
+        session.commit()
+        print('Ações dos jogadores inseridas com sucesso.')
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao salvar ações: {str(e)}")
+
+    
+
 
 # Endpoint para criar um novo usuário
 @app.route('/insert_usuario', methods=['POST'])
@@ -41,9 +143,8 @@ def insert_usuario():
     senha = data.get('senha')
     
     # Criar novo usuário
-    novo_usuario = Usuario(username=username, senha=senha, dinheiro=100.0, pontuacao=0.0)
+    novo_usuario = db.User(username=username, password=senha, money=100.0)
     
-
 
     try:
         session.add(novo_usuario)
@@ -73,7 +174,7 @@ def criar_time():
         return jsonify({'error': 'Todos os campos são obrigatórios.'}), 400
 
     # Cria um novo time
-    novo_time = Time_fantasy(nome_time=nome_time, usuario=username, emblema=emblema)
+    novo_time = db.FantasyTeam(team_name=nome_time, username=username, emblem=emblema)
 
     try:
         session.add(novo_time)
@@ -94,14 +195,14 @@ def get_user_info():
     if not username:
         return jsonify({'error': 'Username parameter is required'}), 400
 
-    user = session.query(Usuario).filter_by(username=username).first()
+    user = session.query(db.User).filter_by(username=username).first()
 
     if user:
         user_info = {
-            'teamName': user.time_fantasy.nome_time if user.time_fantasy else 'N/A',
-            'emblema': user.time_fantasy.emblema if user.time_fantasy else 'N/A',
-            'dinheiro': user.dinheiro,
-            'pontuacao': user.pontuacao
+            'teamName': user.fantasy_team.team_name if user.fantasy_team else 'N/A',
+            'emblema': user.fantasy_team.emblem if user.fantasy_team else 'N/A',
+            'dinheiro': user.money,
+            'pontuacao': '--'
         }
         return jsonify(user_info), 200
     else:
@@ -112,25 +213,16 @@ def get_user_info():
 @app.route('/jogadores', methods=['GET'])
 def get_jogadores():
     try:
-        jogadores = session.query(Jogador).all()
+        jogadores = session.query(db.Player).all()
         jogadores_list = []
         for jogador in jogadores:
             jogadores_list.append({
                 'id': jogador.id,
-                'nome': jogador.nome,
-                'valor': jogador.valor,
-                'time': jogador.time,
-                'posicao': jogador.posicao,
-                'arremessos_3pontos': jogador.arremessos_3pontos,
-                'arremessos_2pontos': jogador.arremessos_2pontos,
-                'lances_livres_convertidos': jogador.lances_livres_convertidos,
-                'rebotes_totais': jogador.rebotes_totais,
-                'bolas_recuperadas': jogador.bolas_recuperadas,
-                'tocos': jogador.tocos,
-                'erros': jogador.erros,
-                'duplos_duplos': jogador.duplos_duplos,
-                'enterradas': jogador.enterradas,
-                'assistencias': jogador.assistencias
+                'nome': jogador.name,
+                'valor': jogador.value,
+                'time': jogador.real_team,
+                'posicao': jogador.position,
+                
             })
         return jsonify(jogadores_list)
     
@@ -143,19 +235,22 @@ def get_jogadores():
 # Endpoint para obter a lista de partidas
 @app.route('/partidas', methods=['GET'])
 def get_partidas():
+    global current_round_id
     session = Session()
     try:
-        partidas = session.query(Partida).all()
+
+        ###filtrar pelo numero da rodada atual
+        partidas = session.query(db.Match).filter(db.Match.round <= current_round_id).all()
         partidas_list = [{
             'id': partida.id,
-            'data': partida.data,
-            'time_casa': partida.time_casa,
-            'time_visitante': partida.time_visitante,
-            'placar_casa': partida.placar_casa,
-            'placar_visitante': partida.placar_visitante,
-            'rodada': partida.rodada
+            'data': partida.date,
+            'time_casa': partida.house_team,
+            'time_visitante': partida.visit_team,
+            'placar_casa': partida.house_score,
+            'placar_visitante': partida.visit_score,
+            'rodada': partida.round
         } for partida in partidas]
-        print(partidas_list)
+       
         return jsonify(partidas_list)
     
     except Exception as e:
@@ -174,17 +269,17 @@ def login():
     senha = data.get('senha')
     
     # Verificar se o usuário existe
-    usuario = session.query(Usuario).filter_by(username=username).first()
+    usuario = session.query(db.User).filter_by(username=username).first()
     
     if not usuario:
         return jsonify({"error": "Usuário não encontrado, registre-se!"}), 404
     
     # Verificar a senha
-    if usuario.senha != senha:
+    if usuario.password != senha:
         return jsonify({"error": "Senha incorreta"}), 403
     
     # Verificar se o usuário já tem um time associado
-    time_fantasy = session.query(Time_fantasy).filter_by(usuario=username).first()
+    time_fantasy = session.query(db.FantasyTeam).filter_by(username=username).first()
     
     if time_fantasy:
         return jsonify({"redirect": "home"})
@@ -195,6 +290,7 @@ def login():
 scheduler.add_job(
     func=my_cron_job,
     trigger=IntervalTrigger(seconds=10),
+
 ) 
 
 scheduler.start()
