@@ -59,7 +59,7 @@ def my_cron_job():
         first_round = session.query(db.Round).order_by(db.Round.id).first()
         if first_round:
             current_round_id = first_round.id
-            
+
     print(f"Rodada atual: {current_round_id}")
     update_player_actions_for_round(current_round_id, df_stat)
     socketio.emit('update', {'current_round_id': current_round_id})
@@ -289,7 +289,7 @@ def login():
 
 scheduler.add_job(
     func=my_cron_job,
-    trigger=IntervalTrigger(seconds=60),
+    trigger=IntervalTrigger(seconds=10),
 
 ) 
 

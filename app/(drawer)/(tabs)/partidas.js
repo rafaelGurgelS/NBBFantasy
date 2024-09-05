@@ -35,15 +35,19 @@ const PartidasScreen = () => {
       const response = await fetch(`http://${ip}:${porta}/partidas`);
       const data = await response.json();
       setPartidas(data);
-
+  
       // Obter todas as rodadas disponíveis
       const uniqueRodadas = [...new Set(data.map(partida => partida.rodada))];
       setRodadas(uniqueRodadas);
-
+  
       // Definir a rodada "hoje" como a última rodada disponível
       if (uniqueRodadas.length > 0) {
-        setRodadaAtual(uniqueRodadas[0]);
         setRodadaHoje(uniqueRodadas[uniqueRodadas.length - 1]);
+  
+        // Definir a rodada atual apenas se ainda não estiver definida ou se a rodada atual não estiver mais disponível
+        if (rodadaAtual === null || !uniqueRodadas.includes(rodadaAtual)) {
+          setRodadaAtual(uniqueRodadas[0]);
+        }
       }
     } catch (error) {
       console.error('Erro ao buscar partidas:', error);
@@ -51,6 +55,7 @@ const PartidasScreen = () => {
       setLoading(false);
     }
   };
+  
 
   const partidasPorRodada = partidas.filter(partida => partida.rodada === rodadaAtual);
 
