@@ -1,12 +1,13 @@
 import csv
 import pandas as pd
+import numpy as np
 from flask import Flask, jsonify,request
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import create_tables_2 as db
 from sqlalchemy.engine import URL
-
+from flask_socketio import SocketIO, emit
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
@@ -26,11 +27,10 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 scheduler = BackgroundScheduler()
 
 current_round_id = 0
-
-
 
 def my_cron_job():
     global current_round_id
@@ -39,6 +39,9 @@ def my_cron_job():
         first_round = session.query(db.Round).order_by(db.Round.id).first()
         if first_round:
             current_round_id = first_round.id
+        print(f"Rodada atual: {current_round_id}")
+        update_player_actions_for_round(current_round_id, df_stat)
+        socketio.emit('update', {'current_round_id': current_round_id})
         return
 
     # Obter a próxima rodada com ID maior que o current_round_id
@@ -56,6 +59,80 @@ def my_cron_job():
         first_round = session.query(db.Round).order_by(db.Round.id).first()
         if first_round:
             current_round_id = first_round.id
+            
+    print(f"Rodada atual: {current_round_id}")
+    update_player_actions_for_round(current_round_id, df_stat)
+    socketio.emit('update', {'current_round_id': current_round_id})
+
+
+# Ler o CSV
+df_stat = pd.read_csv('nbb_estatisticas.csv', header=0)
+
+# Mapeamento das estatísticas
+df_stat['arremessos_3pontos'] = df_stat['3PC'].astype(int)
+df_stat['arremessos_2pontos'] = df_stat['2PC'].astype(int)
+df_stat['lances_livres_convertidos'] = df_stat['LLC'].astype(int)
+df_stat['rebotes_totais'] = df_stat['RT'].astype(int)
+df_stat['bolas_recuperadas'] = df_stat['BR'].astype(int)
+df_stat['tocos'] = df_stat['TO'].astype(int)
+df_stat['erros'] = df_stat['ER'].astype(int)
+df_stat['duplos_duplos'] = df_stat['DD'].astype(int)
+df_stat['enterradas'] = df_stat['EN'].astype(int)
+df_stat['assistencias'] = df_stat['AS'].astype(int)
+
+
+
+def generate_random_variation(stat_value, variation_range=10):
+    return max(0, int(stat_value + np.random.uniform(-variation_range, variation_range)))
+
+
+def update_player_actions_for_round(round_id, df_stat):
+    # Mapeamento dos IDs de ações diretamente
+    action_ids = {
+        'arremessos_3pontos': 1,
+        'arremessos_2pontos': 2,
+        'lances_livres_convertidos': 3,
+        'rebotes_totais': 4,
+        'bolas_recuperadas': 5,
+        'tocos': 6,
+        'erros': 7,
+        'duplos_duplos': 8,
+        'enterradas': 9,
+        'assistencias': 10
+    }
+
+    # Iterar sobre cada jogador no DataFrame
+    for _, row in df_stat.iterrows():
+        player_id = row['ID'] 
+
+        # Para cada estatística (ação), cria uma associação separada
+        for stat_key, action_id in action_ids.items():
+            # Gerar a variação aleatória para essa estatística
+            stat_value = generate_random_variation(row[stat_key])
+
+            # Criar um registro de ação para o jogador, ação e rodada
+            try:
+                action_record = db.PlayerTakesAction(
+                    player_id=player_id,
+                    round_id=round_id,
+                    action_id=action_id,
+                    stat_value=stat_value  # Valor da pontuação com variação
+                )
+                session.add(action_record)
+            except Exception as e:
+                session.rollback()
+                print(f"Erro ao inserir a ação {stat_key} do jogador {player_id}: {str(e)}")
+
+    # Commit para salvar todas as ações no banco de dados
+    try:
+        session.commit()
+        print('Ações dos jogadores inseridas com sucesso.')
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao salvar ações: {str(e)}")
+
+    
+
 
 # Endpoint para criar um novo usuário
 @app.route('/insert_usuario', methods=['POST'])
@@ -68,7 +145,6 @@ def insert_usuario():
     # Criar novo usuário
     novo_usuario = db.User(username=username, password=senha, money=100.0)
     
-
 
     try:
         session.add(novo_usuario)
@@ -214,6 +290,7 @@ def login():
 scheduler.add_job(
     func=my_cron_job,
     trigger=IntervalTrigger(seconds=60),
+
 ) 
 
 scheduler.start()

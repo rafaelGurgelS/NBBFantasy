@@ -1,27 +1,34 @@
-import React, { useState, useEffect,useContext } from 'react';
-import { View, ActivityIndicator,TouchableOpacity,StyleSheet } from 'react-native';
-import { Text, Button, VStack, HStack, ScrollView, Center, Pressable,Box, Icon } from 'native-base';
-import { MaterialIcons } from '@expo/vector-icons'; 
+import React, { useState, useEffect, useContext } from 'react';
+import { View, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, Button, VStack, HStack, ScrollView, Center, Pressable, Box, Icon } from 'native-base';
+import { MaterialIcons } from '@expo/vector-icons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import GlobalContext from '../../globalcontext';
+import io from 'socket.io-client';
 
 const PartidasScreen = () => {
-
   const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
   const [partidas, setPartidas] = useState([]);
   const [rodadaAtual, setRodadaAtual] = useState(null);
-  const [rodadaHoje,setRodadaHoje] = useState(null);
+  const [rodadaHoje, setRodadaHoje] = useState(null);
   const [rodadas, setRodadas] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const ItemSeparator = () => (
-    <View style={{ height: 1, backgroundColor: 'gray' }} />
-  );
-
-
+  // Conectar ao servidor Socket.IO
   useEffect(() => {
-    fetchPartidas();
-  }, []);
+    const socket = io(`http://${ip}:${porta}`);
+
+    socket.on('update', (data) => {
+      console.log('Atualização recebida:', data);
+      setRodadaAtual(data.current_round_id);
+      fetchPartidas(); 
+    });
+
+    // Limpar a conexão quando o componente for desmontado
+    return () => {
+      socket.disconnect();
+    };
+  }, [ip, porta]);
 
   const fetchPartidas = async () => {
     try {
@@ -32,8 +39,8 @@ const PartidasScreen = () => {
       // Obter todas as rodadas disponíveis
       const uniqueRodadas = [...new Set(data.map(partida => partida.rodada))];
       setRodadas(uniqueRodadas);
-      
-      // Definir a rodada "hoje" como a ultima rodada disponível
+
+      // Definir a rodada "hoje" como a última rodada disponível
       if (uniqueRodadas.length > 0) {
         setRodadaAtual(uniqueRodadas[0]);
         setRodadaHoje(uniqueRodadas[uniqueRodadas.length - 1]);
@@ -63,10 +70,8 @@ const PartidasScreen = () => {
 
   const handleRodadaHoje = () => {
     const currentIndex = rodadas.indexOf(rodadaHoje);
-    
     setRodadaAtual(rodadas[currentIndex]);
-    
-  }
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -85,8 +90,6 @@ const PartidasScreen = () => {
     },
   });
 
-
-
   if (loading) {
     return (
       <VStack flex={1} justifyContent="center" alignItems="center">
@@ -94,7 +97,6 @@ const PartidasScreen = () => {
       </VStack>
     );
   }
-
 
   return (
     <VStack flex={1} justifyContent="center" alignItems="center" space={4} px={4}>
@@ -107,51 +109,50 @@ const PartidasScreen = () => {
       {rodadaAtual !== null && (
         <>
           <HStack space={4} alignItems="center" mt={4}>
-          <Pressable onPress={handlePreviousPage}>
-            {({ isPressed }) => (
-              <Center
-                p={2}
-                bg={isPressed ? 'rgba(192,192,192,0.5)' : 'transparent'}
-                borderRadius="full"
-              >
-                <FontAwesome name="chevron-left" size={35} color="orange" />
-              </Center>
-            )}
-          </Pressable>
-      
-          <Text fontSize="xl" fontWeight="bold">Rodada {rodadaAtual}</Text>
-      
-          <Pressable onPress={handleNextPage}>
-            {({ isPressed }) => (
-              <Center
-                p={2}
-                bg={isPressed ? 'rgba(192,192,192,0.5)' : 'transparent'}
-                borderRadius='full'
-              >
-                <FontAwesome name="chevron-right" size={35} color="orange" />
-              </Center>
-            )}
-          </Pressable>
-           
+            <Pressable onPress={handlePreviousPage}>
+              {({ isPressed }) => (
+                <Center
+                  p={2}
+                  bg={isPressed ? 'rgba(192,192,192,0.5)' : 'transparent'}
+                  borderRadius="full"
+                >
+                  <FontAwesome name="chevron-left" size={35} color="orange" />
+                </Center>
+              )}
+            </Pressable>
+
+            <Text fontSize="xl" fontWeight="bold">Rodada {rodadaAtual}</Text>
+
+            <Pressable onPress={handleNextPage}>
+              {({ isPressed }) => (
+                <Center
+                  p={2}
+                  bg={isPressed ? 'rgba(192,192,192,0.5)' : 'transparent'}
+                  borderRadius='full'
+                >
+                  <FontAwesome name="chevron-right" size={35} color="orange" />
+                </Center>
+              )}
+            </Pressable>
           </HStack>
-          <Box bg="white" flex={1} rounded="md"  >
+          <Box bg="white" flex={1} rounded="md">
             <ScrollView width="100%">
-            {partidasPorRodada.map((partida, index) => (
-              <View key={index}>
-                <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
-                  <Text flex={1} textAlign="right">{partida.time_casa}</Text>
-                  <Text flex={1} textAlign="center">{partida.placar_casa} x {partida.placar_visitante}</Text>
-                  <Text flex={1} textAlign="left">{partida.time_visitante}</Text>
-                </HStack>
-                {index < partidasPorRodada.length - 1 && (
-                  <View style={{ height: 1, backgroundColor: 'gray', marginHorizontal: 16 }} />
-                )}
-              </View>
+              {partidasPorRodada.map((partida, index) => (
+                <View key={index}>
+                  <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
+                    <Text flex={1} textAlign="right">{partida.time_casa}</Text>
+                    <Text flex={1} textAlign="center">{partida.placar_casa} x {partida.placar_visitante}</Text>
+                    <Text flex={1} textAlign="left">{partida.time_visitante}</Text>
+                  </HStack>
+                  {index < partidasPorRodada.length - 1 && (
+                    <View style={{ height: 1, backgroundColor: 'gray', marginHorizontal: 16 }} />
+                  )}
+                </View>
               ))}
             </ScrollView>
           </Box>
           <Center mb={4}>
-            <Button onPress={handleRodadaHoje}  bg="orange.400" _text={{ color: 'white' }} borderRadius="20px" >Rodada Atual</Button>
+            <Button onPress={handleRodadaHoje} bg="orange.400" _text={{ color: 'white' }} borderRadius="20px">Rodada Atual</Button>
           </Center>
         </>
       )}

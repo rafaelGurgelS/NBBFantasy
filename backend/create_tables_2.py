@@ -109,6 +109,7 @@ class PlayerTakesAction(Base):
     player_id = Column(Integer,ForeignKey('Players.id'),primary_key=True, nullable=False)
     round_id = Column(Integer,ForeignKey('Rounds.id'),primary_key=True, nullable=False)
     action_id = Column(Integer,ForeignKey('Actions.id'),primary_key=True, nullable=False)
+    stat_value = Column(Integer, nullable=False)
     
 
 class UserHasScore(Base):
@@ -118,15 +119,6 @@ class UserHasScore(Base):
     user_id = Column(String(50),ForeignKey('Users.username'),primary_key=True, nullable=False)
     round_id = Column(Integer,ForeignKey('Rounds.id'),primary_key=True, nullable=False)
     score = Column(Float, nullable=False)
-
-
-
-
-
-
-
-
-
 
 
 # Criação das tabelas no banco de dados (sem excluir dados existentes)

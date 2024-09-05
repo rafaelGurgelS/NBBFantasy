@@ -129,9 +129,9 @@ def importar_partidas():
 
 if __name__ == '__main__':
     
-    #importar_jogadores()
-    #importar_rodadas()
-    #importar_acoes()
+    importar_jogadores()
+    importar_rodadas()
+    importar_acoes()
     importar_partidas()
 
 
