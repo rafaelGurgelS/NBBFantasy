@@ -20,15 +20,23 @@ const PartidasScreen = () => {
 
     socket.on('update', (data) => {
       console.log('Atualização recebida:', data);
-      setRodadaAtual(data.current_round_id);
-      fetchPartidas(); 
+  
+      // Obter o valor atual de rodadaAtual antes de buscar as partidas
+      const currentRodada = rodadaAtual;
+  
+      fetchPartidas().then(() => {
+        // Após fetchPartidas, garantir que rodadaAtual seja atualizado com base no valor recebido
+        if (data.current_round_id && rodadaAtual !== data.current_round_id) {
+          setRodadaAtual(data.current_round_id);
+        }
+      });
     });
-
+  
     // Limpar a conexão quando o componente for desmontado
     return () => {
       socket.disconnect();
     };
-  }, [ip, porta]);
+  }, [ip, porta, rodadaAtual]);
 
   const fetchPartidas = async () => {
     try {
@@ -43,8 +51,8 @@ const PartidasScreen = () => {
       // Definir a rodada "hoje" como a última rodada disponível
       if (uniqueRodadas.length > 0) {
         setRodadaHoje(uniqueRodadas[uniqueRodadas.length - 1]);
-  
-        // Definir a rodada atual apenas se ainda não estiver definida ou se a rodada atual não estiver mais disponível
+        
+        // Definir a rodada atual apenas se não estiver definida ou não for válida
         if (rodadaAtual === null || !uniqueRodadas.includes(rodadaAtual)) {
           setRodadaAtual(uniqueRodadas[0]);
         }
@@ -55,6 +63,7 @@ const PartidasScreen = () => {
       setLoading(false);
     }
   };
+  
   
 
   const partidasPorRodada = partidas.filter(partida => partida.rodada === rodadaAtual);
