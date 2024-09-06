@@ -120,6 +120,22 @@ class UserHasScore(Base):
     round_id = Column(Integer,ForeignKey('Rounds.id'),primary_key=True, nullable=False)
     score = Column(Float, nullable=False)
 
+class PlayerScore(Base):
+    __tablename__ = 'PlayerScores'
+
+
+    id_player = Column(Integer, ForeignKey('Players.id'), primary_key=True, nullable=False)  
+    id_round = Column(Integer, ForeignKey('Rounds.id'), primary_key=True, nullable=False)   
+    score = Column(Float, nullable=False) 
+
+
+    player = relationship("Player", backref="scores")  
+    round = relationship("Round", backref="player_scores") 
+
+# Adiciona a nova tabela no banco de dados
+Base.metadata.create_all(engine)
+
+
 
 # Criação das tabelas no banco de dados (sem excluir dados existentes)
 Base.metadata.create_all(engine)

@@ -41,9 +41,9 @@ def my_cron_job():
             current_round_id = first_round.id
         print(f"Rodada atual: {current_round_id}")
         update_player_actions_for_round(current_round_id, df_stat)
+        update_player_scores_for_round(current_round_id)
         socketio.emit('update', {'current_round_id': current_round_id})
         return
-
     # Obter a próxima rodada com ID maior que o current_round_id
 
     ###quando ajeitarmos a questao das datas das partidas, podemos colocar data de inicio e fim
@@ -131,7 +131,62 @@ def update_player_actions_for_round(round_id, df_stat):
         session.rollback()
         print(f"Erro ao salvar ações: {str(e)}")
 
-    
+def update_player_scores_for_round(current_round_id):
+    try:
+        # Recupera as ações tomadas pelos jogadores na rodada atual
+        player_actions = session.query(
+            db.PlayerTakesAction.player_id,
+            db.PlayerTakesAction.round_id,
+            db.Action.value,
+            db.PlayerTakesAction.stat_value
+        ).join(db.Action, db.PlayerTakesAction.action_id == db.Action.id
+        ).filter(db.PlayerTakesAction.round_id == current_round_id).all()
+
+        # Dicionário para acumular os scores de cada jogador
+        player_scores = {}
+
+        # Calcula o score de cada jogador
+        for action in player_actions:
+            player_id = action.player_id
+            round_id = action.round_id
+            weighted_score = action.value * action.stat_value
+
+            # Acumula o score do jogador
+            if player_id not in player_scores:
+                player_scores[player_id] = weighted_score
+            else:
+                player_scores[player_id] += weighted_score
+
+        # Inserir ou atualizar os scores na tabela PlayerScores
+        for player_id, total_score in player_scores.items():
+            # Verifica se já existe um registro para este jogador e rodada
+            existing_score = session.query(db.PlayerScore).filter_by(
+                id_player=player_id, id_round=current_round_id
+            ).first()
+
+            if existing_score:
+                # Se existir, atualiza o score
+                existing_score.score = total_score
+            else:
+                # Se não existir, cria um novo registro
+                new_player_score = db.PlayerScore(
+                    id_player=player_id,
+                    id_round=current_round_id,
+                    score=total_score
+                )
+                session.add(new_player_score)
+
+        # Commit das alterações no banco de dados
+        session.commit()
+
+    except Exception as e:
+        print(f"Erro ao atualizar os scores dos jogadores: {str(e)}")
+        session.rollback()
+    finally:
+        session.close()
+
+
+
 
 
 # Endpoint para criar um novo usuário
@@ -213,17 +268,25 @@ def get_user_info():
 @app.route('/jogadores', methods=['GET'])
 def get_jogadores():
     try:
-        jogadores = session.query(db.Player).all()
+        # Supondo que você queira a pontuação mais recente, por exemplo:
+        jogadores = session.query(
+            db.Player,
+            db.PlayerScore
+        ).join(
+            db.PlayerScore, db.Player.id == db.PlayerScore.id_player
+        ).all()
+
         jogadores_list = []
-        for jogador in jogadores:
+        for jogador, score in jogadores:
             jogadores_list.append({
                 'id': jogador.id,
                 'nome': jogador.name,
                 'valor': jogador.value,
                 'time': jogador.real_team,
                 'posicao': jogador.position,
-                
+                'pontuacao': score.score  # Pontuação da tabela PlayerScore
             })
+        
         return jsonify(jogadores_list)
     
     except Exception as e:
@@ -231,6 +294,7 @@ def get_jogadores():
         return jsonify({'error': 'Erro ao consultar o banco de dados'}), 500
     finally:
         session.close()  # Fecha a sessão
+
 
 # Endpoint para obter a lista de partidas
 @app.route('/partidas', methods=['GET'])
