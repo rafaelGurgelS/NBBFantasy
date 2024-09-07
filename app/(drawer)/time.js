@@ -46,19 +46,7 @@ export default function EditTeamScreen() {
     });
   };
 
-  const toggleEditMode = () => {
-    setIsEditing(!isEditing);
-    if (isEditing) {
-      toast.show({
-        title: "Sucesso",
-        description: "Nome editado com sucesso!",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
+  
   const handleInputClick = () => {
     if (!isEditing) {
       toast.show({
@@ -103,28 +91,7 @@ export default function EditTeamScreen() {
             </Text>
           </View>
 
-          <View style={styles.inputContainer}>
-            <Input
-              placeholder="Nome do time"
-              variant="filled"
-              width="100%"
-              backgroundColor="#D9D9D9"
-              borderRadius="full"
-              height={50}
-              fontSize={16}
-              value={localTeamName}
-              onChangeText={setLocalTeamName}
-              isReadOnly={!isEditing}
-              mb={4}
-              onTouchStart={handleInputClick} 
-            />
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={toggleEditMode}
-            >
-              <Icon as={MaterialIcons} name={isEditing ? "check" : "edit"} size={6} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+          
 
           <View style={styles.textContainer}>
             <Text fontSize={25} color="#FFFFFF" textAlign="left">

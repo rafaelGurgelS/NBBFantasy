@@ -39,8 +39,6 @@ def my_cron_job():
         if first_round:
             current_round_id = first_round.id
         print(f"Rodada atual: {current_round_id}")
-        update_player_actions_for_round(current_round_id, df_stat)
-        update_player_scores_for_round(current_round_id)
         socketio.emit('update', {'current_round_id': current_round_id})
         return
     # Obter a próxima rodada com ID maior que o current_round_id
@@ -60,129 +58,10 @@ def my_cron_job():
             current_round_id = first_round.id
 
     print(f"Rodada atual: {current_round_id}")
-    update_player_actions_for_round(current_round_id, df_stat)
+    
     socketio.emit('update', {'current_round_id': current_round_id})
 
 
-# Ler o CSV
-df_stat = pd.read_csv('nbb_estatisticas.csv', header=0)
-
-# Mapeamento das estatísticas
-df_stat['arremessos_3pontos'] = df_stat['3PC'].astype(int)
-df_stat['arremessos_2pontos'] = df_stat['2PC'].astype(int)
-df_stat['lances_livres_convertidos'] = df_stat['LLC'].astype(int)
-df_stat['rebotes_totais'] = df_stat['RT'].astype(int)
-df_stat['bolas_recuperadas'] = df_stat['BR'].astype(int)
-df_stat['tocos'] = df_stat['TO'].astype(int)
-df_stat['erros'] = df_stat['ER'].astype(int)
-df_stat['duplos_duplos'] = df_stat['DD'].astype(int)
-df_stat['enterradas'] = df_stat['EN'].astype(int)
-df_stat['assistencias'] = df_stat['AS'].astype(int)
-
-
-
-def generate_random_variation(stat_value, variation_range=10):
-    return max(0, int(stat_value + np.random.uniform(-variation_range, variation_range)))
-
-
-def update_player_actions_for_round(round_id, df_stat):
-    # Mapeamento dos IDs de ações diretamente
-    action_ids = {
-        'arremessos_3pontos': 1,
-        'arremessos_2pontos': 2,
-        'lances_livres_convertidos': 3,
-        'rebotes_totais': 4,
-        'bolas_recuperadas': 5,
-        'tocos': 6,
-        'erros': 7,
-        'duplos_duplos': 8,
-        'enterradas': 9,
-        'assistencias': 10
-    }
-
-    # Iterar sobre cada jogador no DataFrame
-    for _, row in df_stat.iterrows():
-        player_id = row['ID'] 
-
-        # Para cada estatística (ação), cria uma associação separada
-        for stat_key, action_id in action_ids.items():
-            # Gerar a variação aleatória para essa estatística
-            stat_value = generate_random_variation(row[stat_key])
-
-            # Criar um registro de ação para o jogador, ação e rodada
-            try:
-                action_record = db.PlayerTakesAction(
-                    player_id=player_id,
-                    round_id=round_id,
-                    action_id=action_id,
-                    stat_value=stat_value  # Valor da pontuação com variação
-                )
-                session.add(action_record)
-            except Exception as e:
-                session.rollback()
-                print(f"Erro ao inserir a ação {stat_key} do jogador {player_id}: {str(e)}")
-
-    # Commit para salvar todas as ações no banco de dados
-    try:
-        session.commit()
-        print('Ações dos jogadores inseridas com sucesso.')
-    except Exception as e:
-        session.rollback()
-        print(f"Erro ao salvar ações: {str(e)}")
-
-def update_player_scores_for_round(current_round_id):
-    try:
-        # Recupera as ações tomadas pelos jogadores na rodada atual
-        player_actions = session.query(
-            db.PlayerTakesAction.player_id,
-            db.PlayerTakesAction.round_id,
-            db.Action.value,
-            db.PlayerTakesAction.stat_value
-        ).join(db.Action, db.PlayerTakesAction.action_id == db.Action.id
-        ).filter(db.PlayerTakesAction.round_id == current_round_id).all()
-
-        # Dicionário para acumular os scores de cada jogador
-        player_scores = {}
-
-        # Calcula o score de cada jogador
-        for action in player_actions:
-            player_id = action.player_id
-            round_id = action.round_id
-            weighted_score = action.value * action.stat_value
-
-            # Acumula o score do jogador
-            if player_id not in player_scores:
-                player_scores[player_id] = weighted_score
-            else:
-                player_scores[player_id] += weighted_score
-
-        # Inserir ou atualizar os scores na tabela PlayerScores
-        for player_id, total_score in player_scores.items():
-            # Verifica se já existe um registro para este jogador e rodada
-            existing_score = session.query(db.PlayerScore).filter_by(
-                id_player=player_id, id_round=current_round_id
-            ).first()
-
-            if existing_score:
-                # Se existir, atualiza o score
-                existing_score.score = total_score
-            else:
-                # Se não existir, cria um novo registro
-                new_player_score = db.PlayerScore(
-                    id_player=player_id,
-                    id_round=current_round_id,
-                    score=total_score
-                )
-                session.add(new_player_score)
-
-        # Commit das alterações no banco de dados
-        session.commit()
-
-    except Exception as e:
-        print(f"Erro ao atualizar os scores dos jogadores: {str(e)}")
-        session.rollback()
-    finally:
-        session.close()
 
 
 
@@ -195,7 +74,7 @@ def insert_usuario():
     senha = data.get('senha')
     
     # Criar novo usuário
-    novo_usuario = db.User(username=username, password=senha, money=100.0)
+    novo_usuario = db.User(username=username, password=senha, money=400.0)
     
 
     try:
@@ -278,7 +157,7 @@ def get_jogadores():
             jogadores_list.append({
                 'id': jogador.id,
                 'nome': jogador.name,
-                'valor': jogador.value,
+                'valor': score.value,   ##valor da tabela PlayerScore
                 'time': jogador.real_team,
                 'posicao': jogador.position,
                 'pontuacao': score.score  # Pontuação da tabela PlayerScore
@@ -393,7 +272,7 @@ def login():
 
 scheduler.add_job(
     func=my_cron_job,
-    trigger=IntervalTrigger(seconds=120),
+    trigger=IntervalTrigger(seconds=300),
 
 ) 
 

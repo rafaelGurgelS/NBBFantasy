@@ -25,10 +25,9 @@ export default function Conta() {
   const [newUserName, setNewUserName] = useState(userName);
   const [newSenha, setNewSenha] = useState(senha);
 
-  const updateUsuario = async (updatedUserName, updatedSenha) => {
+  const updateUsuario = async (updatedSenha) => {
     console.log('Enviando dados para o backend:', {
-      old_username: userName, // Usando o nome de usuário salvo
-      new_username: updatedUserName,
+      
       new_password: updatedSenha,
     });
   
@@ -39,8 +38,7 @@ export default function Conta() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          old_username: userName, // Usando o nome de usuário salvo
-          new_username: updatedUserName,
+         
           new_password: updatedSenha,
         }),
       });
@@ -72,18 +70,15 @@ export default function Conta() {
     }
   };
 
-  const toggleEditUserName = () => {
-    if (isEditingUserName && newUserName !== userName) { // Verifica se houve alteração no nome de usuário
-      updateUsuario(newUserName, newSenha); // Envia o novo nome de usuário e senha
-      setuserName(newUserName); // Atualiza no contexto global
-    }
-    setIsEditingUserName(!isEditingUserName); // Alterna o modo de edição
-  };
 
   const toggleEditSenha = () => {
-    if (isEditingSenha && newSenha !== senha) { // Verifica se houve alteração na senha
-      updateUsuario(newUserName, newSenha); // Envia o novo nome de usuário e senha
-      setSenha(newSenha); // Atualiza no contexto global
+    if (isEditingSenha && newSenha !== senha) { 
+      if (newSenha.length >= 8) { // Verifica se a nova senha tem pelo menos 8 caracteres
+        updateUsuario(newUserName, newSenha); // Envia o novo nome de usuário e senha
+        setSenha(newSenha); // Atualiza no contexto global
+      } else {
+        alert("A senha deve ter pelo menos 8 caracteres."); // Alerta se a senha for muito curta
+      }
     }
     setIsEditingSenha(!isEditingSenha); // Alterna o modo de edição
   };
@@ -126,31 +121,11 @@ export default function Conta() {
 
           <View style={styles.textContainer}>
             <Text fontSize={25} color="#FFFFFF" textAlign="left">
-              Nome de usuário:
+              Nome de usuário: {userName}
             </Text>
           </View>
 
-          <View style={styles.inputContainer}>
-            <Input
-              placeholder="Nome de usuário"
-              variant="filled"
-              width="100%"
-              backgroundColor="#D9D9D9"
-              borderRadius="full"
-              height={50}
-              fontSize={16}
-              value={newUserName} // Usando o novo valor local
-              onChangeText={setNewUserName} // Atualizando o estado local
-              isReadOnly={!isEditingUserName}
-              mb={4}
-            />
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={toggleEditUserName}
-            >
-              <Icon as={MaterialIcons} name={isEditingUserName ? "check" : "edit"} size={6} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+          
 
           <View style={styles.textContainer}>
             <Text fontSize={25} color="#FFFFFF" textAlign="left">

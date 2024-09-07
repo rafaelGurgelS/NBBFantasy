@@ -50,7 +50,6 @@ class Player(Base):
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(String(100), nullable=False)
     real_team = Column(String(50), nullable=False)
-    value = Column(Float, nullable=False)
     position = Column(String(50), nullable=False)
 
     lineup = relationship("Lineup")
@@ -127,8 +126,8 @@ class PlayerScore(Base):
     id_player = Column(Integer, ForeignKey('Players.id'), primary_key=True, nullable=False)  
     id_round = Column(Integer, ForeignKey('Rounds.id'), primary_key=True, nullable=False)   
     score = Column(Float, nullable=False) 
-
-
+    value = Column(Float, nullable=False) 
+    
     player = relationship("Player", backref="scores")  
     round = relationship("Round", backref="player_scores") 
 
