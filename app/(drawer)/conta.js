@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   VStack,
   Heading,
@@ -11,60 +11,81 @@ import {
 import { TouchableOpacity, ImageBackground, StyleSheet, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { useRouter } from 'expo-router';
+import GlobalContext from '../globalcontext';
 
 export default function Conta() {
   const router = useRouter(); 
   const toast = useToast();
 
-  const [email, setEmail] = useState('user@example.com');
-  const [senha, setSenha] = useState('********');
-  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const { userName, setuserName, ip, porta, senha, setSenha } = useContext(GlobalContext); 
+  const [isEditingUserName, setIsEditingUserName] = useState(false);
   const [isEditingSenha, setIsEditingSenha] = useState(false);
 
-  const toggleEditEmail = () => {
-    setIsEditingEmail(!isEditingEmail);
-    if (isEditingEmail) {
+  // Variáveis de estado locais para controlar o novo valor durante a edição
+  const [newUserName, setNewUserName] = useState(userName);
+  const [newSenha, setNewSenha] = useState(senha);
+
+  const updateUsuario = async (updatedUserName, updatedSenha) => {
+    console.log('Enviando dados para o backend:', {
+      old_username: userName, // Usando o nome de usuário salvo
+      new_username: updatedUserName,
+      new_password: updatedSenha,
+    });
+  
+    try {
+      const response = await fetch(`http://${ip}:${porta}/update_usuario`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          old_username: userName, // Usando o nome de usuário salvo
+          new_username: updatedUserName,
+          new_password: updatedSenha,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          toast.show({
+            title: "Sucesso",
+            description: "Informações atualizadas com sucesso!",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        } else {
+          throw new Error(data.message || 'Erro ao atualizar');
+        }
+      } else {
+        throw new Error('Erro de rede ou do servidor');
+      }
+    } catch (error) {
       toast.show({
-        title: "Sucesso",
-        description: "Email editado com sucesso!",
-        status: "success",
+        title: "Erro",
+        description: `Falha ao atualizar informações: ${error.message}`,
+        status: "error",
         duration: 3000,
         isClosable: true,
       });
     }
+  };
+
+  const toggleEditUserName = () => {
+    if (isEditingUserName && newUserName !== userName) { // Verifica se houve alteração no nome de usuário
+      updateUsuario(newUserName, newSenha); // Envia o novo nome de usuário e senha
+      setuserName(newUserName); // Atualiza no contexto global
+    }
+    setIsEditingUserName(!isEditingUserName); // Alterna o modo de edição
   };
 
   const toggleEditSenha = () => {
-    setIsEditingSenha(!isEditingSenha);
-    if (isEditingSenha) {
-      toast.show({
-        title: "Sucesso",
-        description: "Senha editada com sucesso!",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+    if (isEditingSenha && newSenha !== senha) { // Verifica se houve alteração na senha
+      updateUsuario(newUserName, newSenha); // Envia o novo nome de usuário e senha
+      setSenha(newSenha); // Atualiza no contexto global
     }
-  };
-
-  const handleInputClick = (type) => {
-    if (type === 'email' && !isEditingEmail) {
-      toast.show({
-        title: "Atenção",
-        description: "Clique no ícone de lápis para editar o email.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-    } else if (type === 'senha' && !isEditingSenha) {
-      toast.show({
-        title: "Atenção",
-        description: "Clique no ícone de lápis para editar a senha.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
+    setIsEditingSenha(!isEditingSenha); // Alterna o modo de edição
   };
 
   const handleDeleteAccount = () => {
@@ -105,30 +126,29 @@ export default function Conta() {
 
           <View style={styles.textContainer}>
             <Text fontSize={25} color="#FFFFFF" textAlign="left">
-              Email:
+              Nome de usuário:
             </Text>
           </View>
 
           <View style={styles.inputContainer}>
             <Input
-              placeholder="Email"
+              placeholder="Nome de usuário"
               variant="filled"
               width="100%"
               backgroundColor="#D9D9D9"
               borderRadius="full"
               height={50}
               fontSize={16}
-              value={email}
-              onChangeText={setEmail}
-              isReadOnly={!isEditingEmail}
+              value={newUserName} // Usando o novo valor local
+              onChangeText={setNewUserName} // Atualizando o estado local
+              isReadOnly={!isEditingUserName}
               mb={4}
-              onTouchStart={() => handleInputClick('email')}
             />
             <TouchableOpacity
               style={styles.editButton}
-              onPress={toggleEditEmail}
+              onPress={toggleEditUserName}
             >
-              <Icon as={MaterialIcons} name={isEditingEmail ? "check" : "edit"} size={6} color="#FFFFFF" />
+              <Icon as={MaterialIcons} name={isEditingUserName ? "check" : "edit"} size={6} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
@@ -147,11 +167,10 @@ export default function Conta() {
               borderRadius="full"
               height={50}
               fontSize={16}
-              value={senha}
-              onChangeText={setSenha}
+              value={newSenha} // Usando o novo valor local
+              onChangeText={setNewSenha} // Atualizando o estado local
               isReadOnly={!isEditingSenha}
-              mb={6} // Espaço aumentado entre o campo da senha e o botão
-              onTouchStart={() => handleInputClick('senha')}
+              mb={6}
               secureTextEntry
             />
             <TouchableOpacity
@@ -162,7 +181,6 @@ export default function Conta() {
             </TouchableOpacity>
           </View>
 
-          {/* Container para o botão de excluir conta */}
           <View style={styles.deleteButtonContainer}>
             <Button
               style={styles.deleteButton}
@@ -211,15 +229,15 @@ const styles = StyleSheet.create({
   },
   deleteButtonContainer: {
     width: '100%',
-    alignItems: 'center', // Centraliza o botão horizontalmente
-    marginTop: 40, // Espaço antes do botão
+    alignItems: 'center', 
+    marginTop: 40, 
   },
   deleteButton: {
     backgroundColor: '#FFFFFF',
     borderRadius: 25,
     borderColor: '#FC9904',
     borderWidth: 1,
-    width: '80%', // Largura do botão
+    width: '80%', 
     paddingVertical: 12,
   },
   deleteButtonText: {

@@ -17,8 +17,7 @@ import GlobalContext from './globalcontext.js'; // Importe o contexto global
 
 export default function Home() {
   const router = useRouter();
-  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
-  const [senha, setSenha] = useState("");
+  const { userName, setuserName, ip, setIP, porta, setPorta, senha, setSenha } = useContext(GlobalContext);
   const [senha2, setSenha2] = useState("");
   const toast = useToast();
 

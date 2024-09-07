@@ -8,11 +8,12 @@ export const GlobalProvider = ({ children }) => {
   const [userName, setuserName] = useState('');
   const [ip, setIP] = useState('192.168.0.194');
   const [porta, setPorta] = useState(5000);
+  const [senha, setSenha] = useState('');
   
   
 
   return (
-    <GlobalContext.Provider value={{ userName,setuserName,ip, setIP, porta, setPorta  }}>
+    <GlobalContext.Provider value={{ userName,setuserName,ip, setIP, porta, setPorta, senha, setSenha  }}>
       {children}
     </GlobalContext.Provider>
   );

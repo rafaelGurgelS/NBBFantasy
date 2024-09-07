@@ -1,4 +1,3 @@
-import csv
 import pandas as pd
 import numpy as np
 from flask import Flask, jsonify,request
@@ -187,8 +186,6 @@ def update_player_scores_for_round(current_round_id):
 
 
 
-
-
 # Endpoint para criar um novo usuário
 @app.route('/insert_usuario', methods=['POST'])
 def insert_usuario():
@@ -296,6 +293,47 @@ def get_jogadores():
         session.close()  # Fecha a sessão
 
 
+@app.route('/update_usuario', methods=['PUT'])
+def update_usuario():
+    data = request.get_json()
+    
+    old_username = data.get('old_username')
+    new_username = data.get('new_username')
+    new_password = data.get('new_password')
+    
+    if not old_username or (not new_username and not new_password):
+        return jsonify({'error': 'Os parâmetros necessários estão ausentes.'}), 400
+    
+    try:
+        # Atualiza a chave estrangeira em FantasyTeams primeiro, se houver necessidade
+        fantasy_team = session.query(db.FantasyTeam).filter_by(username=old_username).first()
+        if fantasy_team and new_username:
+            fantasy_team.username = new_username
+
+        # Buscar o usuário atual no banco de dados
+        user = session.query(db.User).filter_by(username=old_username).first()
+        
+        if user:
+            # Atualizar o nome de usuário e/ou a senha
+            if new_username:
+                user.username = new_username
+            if new_password:
+                user.password = new_password
+            
+            # Salvar as alterações no banco de dados
+            session.commit()
+            return jsonify({'message': 'Usuário atualizado com sucesso!'}), 200
+        
+        else:
+            return jsonify({'error': 'Usuário não encontrado.'}), 404
+        
+    except Exception as e:
+        session.rollback()  # Desfazer as alterações em caso de erro
+        print(f"Erro ao atualizar o usuário: {str(e)}")
+        return jsonify({'error': 'Erro ao atualizar o usuário.'}), 500
+
+
+
 # Endpoint para obter a lista de partidas
 @app.route('/partidas', methods=['GET'])
 def get_partidas():
@@ -351,9 +389,11 @@ def login():
         return jsonify({"redirect": "criarTime"})
 
 
+
+
 scheduler.add_job(
     func=my_cron_job,
-    trigger=IntervalTrigger(seconds=10),
+    trigger=IntervalTrigger(seconds=120),
 
 ) 
 
