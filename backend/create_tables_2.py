@@ -29,7 +29,7 @@ class User(Base):
     money = Column(Float, nullable=False)  
 
     scores=relationship("UserHasScore")
-    fantasy_team=relationship("FantasyTeam",uselist=False)
+    fantasy_team = relationship('FantasyTeam', backref='user', cascade='all, delete-orphan', uselist=False)
     
 
 class FantasyTeam(Base):
@@ -38,7 +38,7 @@ class FantasyTeam(Base):
     team_name = Column(String(100), primary_key=True, nullable=False)
     emblem = Column(String(255), nullable=True) 
 
-    username = Column(String(50), ForeignKey('Users.username'), nullable=False)
+    username = Column(String(50), ForeignKey('Users.username', ondelete='CASCADE'), nullable=False)
 
     # Relacionamento com a tabela lineup
     lineup = relationship("Lineup")

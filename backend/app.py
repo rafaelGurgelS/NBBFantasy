@@ -176,32 +176,19 @@ def get_jogadores():
 def update_usuario():
     data = request.get_json()
     
-    old_username = data.get('old_username')
-    new_username = data.get('new_username')
+    username = data.get('username')
     new_password = data.get('new_password')
     
-    if not old_username or (not new_username and not new_password):
-        return jsonify({'error': 'Os parâmetros necessários estão ausentes.'}), 400
-    
     try:
-        # Atualiza a chave estrangeira em FantasyTeams primeiro, se houver necessidade
-        fantasy_team = session.query(db.FantasyTeam).filter_by(username=old_username).first()
-        if fantasy_team and new_username:
-            fantasy_team.username = new_username
-
         # Buscar o usuário atual no banco de dados
-        user = session.query(db.User).filter_by(username=old_username).first()
-        
+        user = session.query(db.User).filter_by(username=username).first()
+
         if user:
-            # Atualizar o nome de usuário e/ou a senha
-            if new_username:
-                user.username = new_username
-            if new_password:
-                user.password = new_password
+            user.password = new_password
             
             # Salvar as alterações no banco de dados
             session.commit()
-            return jsonify({'message': 'Usuário atualizado com sucesso!'}), 200
+            return jsonify({'success': True, 'message': 'Usuário atualizado com sucesso!'}), 200
         
         else:
             return jsonify({'error': 'Usuário não encontrado.'}), 404
@@ -210,6 +197,31 @@ def update_usuario():
         session.rollback()  # Desfazer as alterações em caso de erro
         print(f"Erro ao atualizar o usuário: {str(e)}")
         return jsonify({'error': 'Erro ao atualizar o usuário.'}), 500
+
+
+@app.route('/delete_usuario', methods=['DELETE'])
+def delete_usuario():
+    data = request.get_json()
+    username = data.get('username')
+    print(f"Recebido username para exclusão: {username}")
+
+    try:
+        # Buscar o usuário no banco de dados
+        user = session.query(db.User).filter_by(username=username).first()
+        print(f"Usuário encontrado: {user}")
+
+        if user:
+            # Excluir o usuário
+            session.delete(user)
+            session.commit()
+            return jsonify({'success': True, 'message': 'Usuário excluído com sucesso!'}), 200
+        else:
+            return jsonify({'error': 'Usuário não encontrado.'}), 404
+
+    except Exception as e:
+        session.rollback()  # Desfazer alterações em caso de erro
+        print(f"Erro ao excluir o usuário: {str(e)}")
+        return jsonify({'error': 'Erro ao excluir o usuário.'}), 500
 
 
 
