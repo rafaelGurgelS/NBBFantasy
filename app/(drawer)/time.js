@@ -1,8 +1,7 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   VStack,
   Heading,
-  Input,
   Text,
   FlatList,
   Box,
@@ -10,18 +9,21 @@ import {
   useToast,
 } from 'native-base';
 import { TouchableOpacity, ImageBackground, StyleSheet, View } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons'; 
+import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-//import GlobalContext from '../globalcontext.js';
+import GlobalContext from '../globalcontext';
 
 export default function EditTeamScreen() {
-  const router = useRouter(); 
+  const { userName, ip, porta } = useContext(GlobalContext); // Obtendo userName, ip, e porta do contexto
+  const router = useRouter();
   const toast = useToast();
 
-  const [localTeamName, setLocalTeamName] = useState('INVENCÍVEIS');
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [localSelectedEmblem, setLocalSelectedEmblem] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
 
+  // Emblemas disponíveis
   const emblemData = [
     { id: '1', name: 'Emblema 1' },
     { id: '2', name: 'Emblema 2' },
@@ -35,24 +37,73 @@ export default function EditTeamScreen() {
     { id: '10', name: 'Emblema 10' },
   ];
 
-  const handleEmblemSelect = (id) => {
-    setLocalSelectedEmblem(id);
-    toast.show({
-      title: "Sucesso",
-      description: "Emblema alterado com sucesso!",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-  };
+  // Buscar informações do usuário
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch(`http://${ip}:${porta}/get_user_info?username=${userName}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserInfo(data);
+          setLocalSelectedEmblem(data.emblema); // Marcar o emblema atual
+        } else {
+          const errorData = await response.json();
+          setError(errorData.error || 'Erro ao buscar informações do usuário');
+        }
+      } catch (err) {
+        setError('Erro ao se conectar com o servidor');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  
-  const handleInputClick = () => {
-    if (!isEditing) {
+    if (userName) {
+      fetchUserInfo();
+    }
+  }, [userName, ip, porta]);
+
+  // Função para atualizar o emblema no servidor
+  const handleEmblemSelect = async (id) => {
+    try {
+      setLocalSelectedEmblem(id); // Atualiza o emblema localmente
+
+      const response = await fetch(`http://${ip}:${porta}/update-emblem`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          team_name: userInfo.teamName,
+          new_emblem: id,
+        }),
+      });
+
+      console.log('Nome do Time:', userInfo.teamName);
+      console.log('Emblema:', id);
+
+      if (response.ok) {
+        toast.show({
+          title: "Sucesso",
+          description: "Emblema alterado com sucesso!",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        const errorData = await response.json();
+        toast.show({
+          title: "Erro",
+          description: errorData.message || "Erro ao atualizar o emblema",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
       toast.show({
-        title: "Atenção",
-        description: "Clique no ícone de lápis para editar o nome.",
-        status: "warning",
+        title: "Erro",
+        description: "Erro ao se conectar com o servidor",
+        status: "error",
         duration: 3000,
         isClosable: true,
       });
@@ -62,7 +113,7 @@ export default function EditTeamScreen() {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('../../assets/images/layoutDrawerTime.jpg')} 
+        source={require('../../assets/images/layoutDrawerTime.jpg')}
         style={styles.imageBackground}
         resizeMode="cover"
       >
@@ -85,50 +136,54 @@ export default function EditTeamScreen() {
             SUA EQUIPE DE BASQUETE!
           </Heading>
 
-          <View style={styles.textContainer}>
-            <Text fontSize={25} color="#FFFFFF" textAlign="left">
-              Nome:
-            </Text>
-          </View>
+          {loading ? (
+            <Text color="#FFFFFF">Carregando...</Text>
+          ) : error ? (
+            <Text color="red.500">{error}</Text>
+          ) : (
+            <>
+              <View style={styles.textContainer}>
+                <Text fontSize={25} color="#FFFFFF" textAlign="left">
+                  Nome: {userInfo?.teamName || 'N/A'}
+                </Text>
+              </View>
 
-          
+              <View style={styles.textContainer}>
+                <Text fontSize={25} color="#FFFFFF" textAlign="left">
+                  Emblema:
+                </Text>
+              </View>
 
-          <View style={styles.textContainer}>
-            <Text fontSize={25} color="#FFFFFF" textAlign="left">
-              Emblema:
-            </Text>
-          </View>
-
-          <View style={styles.separator} />
-
-          <FlatList
-            horizontal
-            data={emblemData}
-            renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => handleEmblemSelect(item.id)}>
-                <Box
-                  padding={5}
-                  borderColor={
-                    localSelectedEmblem === item.id ? '#FC9904' : '#D9D9D9'
-                  }
-                  borderWidth={1}
-                  borderRadius="full"
-                  m={2}
-                  backgroundColor={
-                    localSelectedEmblem === item.id ? '#FFFFFF' : 'transparent'
-                  }
-                >
-                  <Text
-                    color={localSelectedEmblem === item.id ? '#FC9904' : '#FFFFFF'}
-                  >
-                    {item.name}
-                  </Text>
-                </Box>
-              </TouchableOpacity>
-            )}
-            keyExtractor={(item) => item.id}
-            showsHorizontalScrollIndicator={false}
-          />
+              <FlatList
+                horizontal
+                data={emblemData}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => handleEmblemSelect(item.id)}>
+                    <Box
+                      padding={5}
+                      borderColor={
+                        localSelectedEmblem === item.id ? '#FC9904' : '#D9D9D9'
+                      }
+                      borderWidth={1}
+                      borderRadius="full"
+                      m={2}
+                      backgroundColor={
+                        localSelectedEmblem === item.id ? '#FFFFFF' : 'transparent'
+                      }
+                    >
+                      <Text
+                        color={localSelectedEmblem === item.id ? '#FC9904' : '#FFFFFF'}
+                      >
+                        {item.name}
+                      </Text>
+                    </Box>
+                  </TouchableOpacity>
+                )}
+                keyExtractor={(item) => item.id}
+                showsHorizontalScrollIndicator={false}
+              />
+            </>
+          )}
         </VStack>
       </ImageBackground>
     </View>
@@ -153,24 +208,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 3,
   },
-  inputContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  editButton: {
-    marginLeft: 10,
-  },
   backButton: {
     position: 'absolute',
     top: 45,
     left: 20,
-  },
-  separator: {
-    width: '100%',
-    height: 1,
-    backgroundColor: '#D9D9D9',
-    marginVertical: 0,
   },
 });

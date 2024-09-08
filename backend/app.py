@@ -199,6 +199,43 @@ def update_usuario():
         return jsonify({'error': 'Erro ao atualizar o usuário.'}), 500
 
 
+@app.route('/update-emblem', methods=['POST'])
+def update_emblem():
+    data = request.get_json()
+    team_name = data.get('team_name')
+    new_emblem = data.get('new_emblem')
+
+    try:
+        team = session.query(db.FantasyTeam).filter_by(team_name=team_name).first()
+        print(f"Nome do time: {team.team_name}")
+        print(f"User: {team.username}")
+
+        if team:
+            print(f"Antes da atualização: {team.emblem}")
+            team.emblem = new_emblem
+            print(f"Após a atualização: {team.emblem}")
+            
+            try:
+                db.session.commit()
+                print("Commit bem-sucedido")
+                return jsonify({"message": "Emblema atualizado com sucesso!"}), 200
+            except Exception as e:
+                db.session.rollback()
+                print(f"Erro ao dar commit: {e}")
+                return jsonify({"message": "Erro ao atualizar o emblema"}), 500
+
+        else:
+            return jsonify({"message": "Time não encontrado"}), 404
+    
+    except Exception as e:
+        session.rollback()  # Desfazer as alterações em caso de erro
+        print(f"Erro ao atualizar o usuário: {str(e)}")
+        return jsonify({'error': 'Erro ao atualizar o emblema.'}), 500
+
+
+
+
+
 @app.route('/delete_usuario', methods=['DELETE'])
 def delete_usuario():
     data = request.get_json()
