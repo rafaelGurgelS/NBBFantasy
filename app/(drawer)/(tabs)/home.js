@@ -105,7 +105,7 @@ export default function HomeScreen() {
 
             {/* Nome do time */}
             <Box ml={10}>
-              <Heading size="sm">Time: {userInfo.teamName}</Heading>
+              <Heading size="sm">Time: {userInfo.fantasy_team}</Heading>
             </Box>
           </Box>
 
@@ -125,7 +125,7 @@ export default function HomeScreen() {
               width={20}
               height={8}
             >
-              <Text>{userInfo.dinheiro}</Text>
+              <Text>{userInfo.money}</Text>
             </Box>
 
             {/* Caixa para pontuação total */}

@@ -62,6 +62,34 @@ def my_cron_job():
     socketio.emit('update', {'current_round_id': current_round_id})
 
 
+@app.route('/insert_lineup', methods=['POST'])
+def insert_lineup():
+    global current_round_id
+
+    data = request.get_json()
+    
+    team_name = data.get('team_name')
+    player_id = data.get('player_id')
+    
+
+    
+    
+    # Criar novo usuário
+    new_lineup = db.Lineup(team_name=team_name, player_id=player_id,round_id=current_round_id)
+    
+
+    try:
+        session.add(new_lineup)
+        session.commit()
+        return jsonify({'message': 'Jogador adicionado ao time!'}), 201
+    
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao adicionar jogador: {str(e)}")
+        return jsonify({'error': 'Erro ao adicionar jogador'}), 500
+    
+    finally:
+        session.close()
 
 
 
@@ -130,10 +158,8 @@ def get_user_info():
 
     if user:
         user_info = {
-            'teamName': user.fantasy_team.team_name if user.fantasy_team else 'N/A',
-            'emblema': user.fantasy_team.emblem if user.fantasy_team else 'N/A',
-            'dinheiro': user.money,
-            'pontuacao': '--'
+            'money': user.money,
+            'fantasy_team': user.fantasy_team.team_name
         }
         return jsonify(user_info), 200
     else:
@@ -143,13 +169,17 @@ def get_user_info():
 # Endpoint para obter a lista de jogadores
 @app.route('/jogadores', methods=['GET'])
 def get_jogadores():
+    global current_round_id
+
     try:
-        # Supondo que você queira a pontuação mais recente, por exemplo:
+        
         jogadores = session.query(
             db.Player,
             db.PlayerScore
         ).join(
             db.PlayerScore, db.Player.id == db.PlayerScore.id_player
+        ).filter(
+            db.PlayerScore.id_round == current_round_id
         ).all()
 
         jogadores_list = []
@@ -321,7 +351,7 @@ def login():
 
 scheduler.add_job(
     func=my_cron_job,
-    trigger=IntervalTrigger(seconds=300),
+    trigger=IntervalTrigger(seconds=60),
 
 ) 
 

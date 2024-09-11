@@ -10,10 +10,13 @@ import io from 'socket.io-client';
 (então s.. td essa junção que eu fiz foi meio inútil, se bem q ja tendo essa info no item.pontuacao facilita pra exibir depois)
 Além disso, tava olhando o figma... tem muita tela pra fazer ainda */ 
 
+//lembrar de atualizar o userMoney no BD
+
+
 const EscalacaoScreen = () => {
   const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
   const [rodadaAtual, setRodadaAtual] = useState(null);
-  const [userMoney, setUserMoney] = useState(1000);
+  const [userMoney, setUserMoney] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclose();
   const [selectedPosition, setSelectedPosition] = useState(null);
 
@@ -47,6 +50,30 @@ const EscalacaoScreen = () => {
     };
   }, [ip, porta]);
 
+  const fetchUserInfo = async () => {
+    try {
+      const response = await fetch(`http://${ip}:${porta}/get_user_info?username=${userName}`);
+      if (response.ok) {
+        const data = await response.json();
+        setUserMoney(data.money);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Erro ao buscar informações do usuário');
+      }
+    } catch (err) {
+      setError('Erro ao se conectar com o servidor');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (userName) {
+    fetchUserInfo();
+  }
+
+
+
+
 
   const fetchJogadores = async () => {
     try {
@@ -72,6 +99,34 @@ const EscalacaoScreen = () => {
       setListLoading(false);
     }, 1000);
   };
+
+  const insertLineup = async (team_name, player_id) => {
+    try {
+      const response = await fetch(`http://${ip}:${porta}/insert_lineup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          team_name: team_name,
+          player_id: player_id,
+        }),
+      });
+  
+      const result = await response.json();
+      if (response.ok) {
+        alert(result.message);  // Exibe mensagem de sucesso
+      } else {
+        alert(result.error);  // Exibe mensagem de erro
+      }
+    } catch (error) {
+      console.error('Erro ao inserir jogador:', error);
+      alert('Erro ao conectar ao servidor');
+    }
+  };
+  
+
+
 
   const buyPlayer = (jogador) => {
     if (comprados[selectedPosition]?.id === jogador.id) {
@@ -168,7 +223,7 @@ const EscalacaoScreen = () => {
         
         <HStack w="100%" py={4} bg="warmGray.400" justifyContent="space-between" alignItems="center" px={4}>
           <Flex flex={1} alignItems="center">
-            <Text color="white" fontWeight="bold">R${userMoney.toFixed(2)}</Text>
+            <Text color="white" fontWeight="bold">R${(userMoney ?? 0).toFixed(2)}</Text>
           </Flex>
           <Flex flex={1} alignItems="center">
             {/* Verifica se a rodadaAtual está definida antes de exibir */}
