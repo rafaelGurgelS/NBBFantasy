@@ -12,11 +12,14 @@ import { TouchableOpacity, ImageBackground, StyleSheet, View } from 'react-nativ
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import GlobalContext from '../globalcontext';
+import { useNavigation } from '@react-navigation/native';
+
 
 export default function EditTeamScreen() {
   const { userName, ip, porta } = useContext(GlobalContext); // Obtendo userName, ip, e porta do contexto
   const router = useRouter();
   const toast = useToast();
+  const navigation = useNavigation();
 
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -73,12 +76,12 @@ export default function EditTeamScreen() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          team_name: userInfo.teamName,
+          team_name: userInfo.fantasy_team,
           new_emblem: id,
         }),
       });
 
-      console.log('Nome do Time:', userInfo.teamName);
+      console.log('Nome do Time:', userInfo.fantasy_team);
       console.log('Emblema:', id);
 
       if (response.ok) {
@@ -127,7 +130,7 @@ export default function EditTeamScreen() {
         >
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.push('/(drawer)/(tabs)/home')}
+            onPress={() => navigation.goBack()}
           >
             <Icon as={MaterialIcons} name="arrow-back" size={10} color="#FFFFFF" />
           </TouchableOpacity>
@@ -144,7 +147,7 @@ export default function EditTeamScreen() {
             <>
               <View style={styles.textContainer}>
                 <Text fontSize={25} color="#FFFFFF" textAlign="left">
-                  Nome: {userInfo?.teamName || 'N/A'}
+                  Nome: {userInfo?.fantasy_team || 'N/A'}
                 </Text>
               </View>
 

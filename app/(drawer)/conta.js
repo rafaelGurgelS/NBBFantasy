@@ -13,10 +13,12 @@ import { TouchableOpacity, ImageBackground, StyleSheet, View } from 'react-nativ
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { useRouter } from 'expo-router';
 import GlobalContext from '../globalcontext';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Conta() {
   const router = useRouter(); 
   const toast = useToast();
+  const navigation = useNavigation();
 
   const { userName, setuserName, ip, porta, senha, setSenha } = useContext(GlobalContext); 
   const [isEditingSenha, setIsEditingSenha] = useState(false);
@@ -154,7 +156,7 @@ export default function Conta() {
         >
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.push('/(drawer)/(tabs)/home')}
+            onPress={() => navigation.goBack()}
           >
             <Icon as={MaterialIcons} name="arrow-back" size={10} color="#FFFFFF" />
           </TouchableOpacity>

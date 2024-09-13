@@ -148,22 +148,33 @@ def criar_time():
     finally:
         session.close()
 
+
 @app.route('/get_user_info', methods=['GET'])
 def get_user_info():
     username = request.args.get('username')
     if not username:
         return jsonify({'error': 'Username parameter is required'}), 400
 
-    user = session.query(db.User).filter_by(username=username).first()
+    try:
+        user = session.query(db.User).filter_by(username=username).first()
 
-    if user:
-        user_info = {
-            'money': user.money,
-            'fantasy_team': user.fantasy_team.team_name
-        }
-        return jsonify(user_info), 200
-    else:
-        return jsonify({'error': 'User not found'}), 404
+        if user:
+            user_info = {
+                'money': user.money,
+                'fantasy_team': user.fantasy_team.team_name,
+                'emblema': user.fantasy_team.emblem
+            }
+            return jsonify(user_info), 200
+        else:
+            return jsonify({'error': 'User not found'}), 404
+
+    except Exception as e:
+        print(f"Erro ao consultar o banco de dados: {str(e)}")
+        return jsonify({'error': 'Erro ao consultar o banco de dados'}), 500
+
+    finally:
+        session.close()  # Fecha a sessão
+
 
 
 # Endpoint para obter a lista de jogadores
@@ -228,6 +239,10 @@ def update_usuario():
         print(f"Erro ao atualizar o usuário: {str(e)}")
         return jsonify({'error': 'Erro ao atualizar o usuário.'}), 500
 
+    finally:
+        session.close()  # Fecha a sessão
+
+
 
 @app.route('/update-emblem', methods=['POST'])
 def update_emblem():
@@ -246,11 +261,12 @@ def update_emblem():
             print(f"Após a atualização: {team.emblem}")
             
             try:
-                db.session.commit()
+                session.flush() 
+                session.commit()
                 print("Commit bem-sucedido")
                 return jsonify({"message": "Emblema atualizado com sucesso!"}), 200
             except Exception as e:
-                db.session.rollback()
+                session.rollback()
                 print(f"Erro ao dar commit: {e}")
                 return jsonify({"message": "Erro ao atualizar o emblema"}), 500
 
@@ -259,8 +275,11 @@ def update_emblem():
     
     except Exception as e:
         session.rollback()  # Desfazer as alterações em caso de erro
-        print(f"Erro ao atualizar o usuário: {str(e)}")
+        print(f"Erro ao atualizar o emblema: {str(e)}")
         return jsonify({'error': 'Erro ao atualizar o emblema.'}), 500
+
+    finally:
+        session.close()  # Fecha a sessão
 
 
 
@@ -290,13 +309,16 @@ def delete_usuario():
         print(f"Erro ao excluir o usuário: {str(e)}")
         return jsonify({'error': 'Erro ao excluir o usuário.'}), 500
 
+    finally:
+        session.close()  # Fecha a sessão
+
+
 
 
 # Endpoint para obter a lista de partidas
 @app.route('/partidas', methods=['GET'])
 def get_partidas():
     global current_round_id
-    session = Session()
     try:
 
         ###filtrar pelo numero da rodada atual
@@ -327,26 +349,32 @@ def login():
     data = request.json
     username = data.get('username')
     senha = data.get('senha')
-    
-    # Verificar se o usuário existe
-    usuario = session.query(db.User).filter_by(username=username).first()
-    
-    if not usuario:
-        return jsonify({"error": "Usuário não encontrado, registre-se!"}), 404
-    
-    # Verificar a senha
-    if usuario.password != senha:
-        return jsonify({"error": "Senha incorreta"}), 403
-    
-    # Verificar se o usuário já tem um time associado
-    time_fantasy = session.query(db.FantasyTeam).filter_by(username=username).first()
-    
-    if time_fantasy:
-        return jsonify({"redirect": "home"})
-    else:
-        return jsonify({"redirect": "criarTime"})
 
+    try:
+        # Verificar se o usuário existe
+        usuario = session.query(db.User).filter_by(username=username).first()
 
+        if not usuario:
+            return jsonify({"error": "Usuário não encontrado, registre-se!"}), 404
+
+        # Verificar a senha
+        if usuario.password != senha:
+            return jsonify({"error": "Senha incorreta"}), 403
+
+        # Verificar se o usuário já tem um time associado
+        time_fantasy = session.query(db.FantasyTeam).filter_by(username=username).first()
+
+        if time_fantasy:
+            return jsonify({"redirect": "home"})
+        else:
+            return jsonify({"redirect": "criarTime"})
+
+    except Exception as e:
+        print(f"Erro ao realizar login: {str(e)}")
+        return jsonify({'error': 'Erro ao realizar login.'}), 500
+
+    finally:
+        session.close()  # Fecha a sessão
 
 
 scheduler.add_job(

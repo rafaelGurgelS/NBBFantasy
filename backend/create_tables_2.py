@@ -28,7 +28,7 @@ class User(Base):
     password = Column(String(100), nullable=False)
     money = Column(Float, nullable=False)  
 
-    scores=relationship("UserHasScore")
+    scores = relationship("UserHasScore")
     fantasy_team = relationship('FantasyTeam', backref='user', cascade='all, delete-orphan', uselist=False)
     
 
