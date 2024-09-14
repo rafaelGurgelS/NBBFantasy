@@ -19,6 +19,8 @@ const EscalacaoScreen = () => {
   const [userMoney, setUserMoney] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclose();
   const [selectedPosition, setSelectedPosition] = useState(null);
+  const [teamName, setTeamName] = useState(null);
+  const [error, setError] = useState(null);
 
   const [comprados, setComprados] = useState({
     'Ala armador': null,
@@ -37,18 +39,20 @@ const EscalacaoScreen = () => {
 
   useEffect(() => {
     const socket = io(`http://${ip}:${porta}`);
-
     socket.on('update', (data) => {
-      console.log('Atualização recebida:', data);
       setRodadaAtual(data.current_round_id);
       fetchJogadores();
     });
-
-    // Cleanup function to disconnect the socket when the component unmounts
     return () => {
       socket.disconnect();
     };
   }, [ip, porta]);
+
+  useEffect(() => {
+    if (userName) {
+      fetchUserInfo();
+    }
+  }, [userName]);
 
   const fetchUserInfo = async () => {
     try {
@@ -56,6 +60,7 @@ const EscalacaoScreen = () => {
       if (response.ok) {
         const data = await response.json();
         setUserMoney(data.money);
+        setTeamName(data.fantasy_team);
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Erro ao buscar informações do usuário');
@@ -66,14 +71,6 @@ const EscalacaoScreen = () => {
       setLoading(false);
     }
   };
-
-  if (userName) {
-    fetchUserInfo();
-  }
-
-
-
-
 
   const fetchJogadores = async () => {
     try {
@@ -125,10 +122,60 @@ const EscalacaoScreen = () => {
     }
   };
   
+  const removeLineup = async (team_name, player_id) => {
+    try {
+      const response = await fetch(`http://${ip}:${porta}/remove_lineup`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          team_name: team_name,
+          player_id: player_id,
+        }),
+      });
+
+      console.log(player_id, team_name);
+  
+      const result = await response.json();
+      if (response.ok) {
+        alert(result.message);  // Exibe mensagem de sucesso
+      } else {
+        alert(result.error);  // Exibe mensagem de erro
+      }
+    } catch (error) {
+      console.error('Erro ao remover jogador:', error);
+      alert('Erro ao conectar ao servidor');
+    }
+  };
 
 
+  const insertMoney = async (username, newMoneyAmount) => {
+    try {
+      const response = await fetch(`http://${ip}:${porta}/update_user_money`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username,
+          new_money: newMoneyAmount,
+        }),
+      });
+  
+      const result = await response.json();
+      if (response.ok) {
+        console.log('Saldo atualizado com sucesso:', result.message);
+      } else {
+        console.error('Erro ao atualizar o saldo:', result.error);
+      }
+    } catch (error) {
+      console.error('Erro ao conectar ao servidor:', error);
+    }
+  };
 
-  const buyPlayer = (jogador) => {
+
+  const buyPlayer = async (jogador) => {
     if (comprados[selectedPosition]?.id === jogador.id) {
       alert('Este jogador já foi comprado.');
       return;
@@ -137,12 +184,20 @@ const EscalacaoScreen = () => {
     if (userMoney >= jogador.valor) {
       const previousPlayer = comprados[selectedPosition];
       let newMoney = userMoney - jogador.valor;
+      console.log(jogador.valor)
+      console.log(newMoney)
 
       if (previousPlayer) {
         newMoney += previousPlayer.valor;
+        await removeLineup(teamName, previousPlayer.id);
       }
 
+      await insertLineup(teamName , jogador.id);
+
       setUserMoney(newMoney);
+
+      await insertMoney(userName, newMoney); 
+
       setComprados({ ...comprados, [selectedPosition]: jogador });
       onClose();
     } else {
@@ -150,15 +205,18 @@ const EscalacaoScreen = () => {
     }
   };
 
-  const cancelPurchase = (jogador) => {
+  const cancelPurchase = async (jogador) => {
     const newMoney = userMoney + jogador.valor;
     setUserMoney(newMoney);
+    await insertMoney(userName, newMoney);
 
     setComprados((prevComprados) => {
       const updatedComprados = { ...prevComprados };
       updatedComprados[selectedPosition] = null;
       return updatedComprados;
     });
+
+    removeLineup(teamName, jogador.id)
   };
 
   const renderButtonIcon = (position) => {

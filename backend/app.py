@@ -71,13 +71,8 @@ def insert_lineup():
     team_name = data.get('team_name')
     player_id = data.get('player_id')
     
-
-    
-    
-    # Criar novo usuário
     new_lineup = db.Lineup(team_name=team_name, player_id=player_id,round_id=current_round_id)
     
-
     try:
         session.add(new_lineup)
         session.commit()
@@ -90,6 +85,73 @@ def insert_lineup():
     
     finally:
         session.close()
+
+
+@app.route('/remove_lineup', methods=['DELETE'])
+def remove_lineup():
+    global current_round_id
+
+    data = request.get_json()
+    
+    team_name = data.get('team_name')
+    player_id = data.get('player_id')
+    
+    try:
+        # Buscar o usuário no banco de dados
+        player = session.query(db.Lineup).filter_by(player_id = player_id, team_name = team_name, round_id = current_round_id).first()
+
+        if player:
+            # Excluir o usuário
+            session.delete(player)
+            session.commit()
+            return jsonify({'success': True, 'message': 'Jogador removido com sucesso!'}), 200
+        else:
+            return jsonify({'error': 'Jogador não encontrado.'}), 404
+
+    except Exception as e:
+        session.rollback()  # Desfazer alterações em caso de erro
+        print(f"Erro ao excluir o jogador: {str(e)}")
+        return jsonify({'error': 'Erro ao excluir o jogador.'}), 500
+
+    finally:
+        session.close()  # Fecha a sessão 
+    
+
+
+@app.route('/update_user_money', methods=['POST'])
+def insert_money():
+    data = request.get_json()
+    username = data.get('username')
+    new_money = data.get('new_money')
+
+    try:
+        user = session.query(db.User).filter_by(username=username).first()
+        if user:
+            print(f"Usuário encontrado: {user.username}")
+            print(f"Saldo antes da atualização: {user.money}")
+
+            user.money = new_money
+            print(f"Saldo após a atualização: {user.money}")
+
+            try:
+                session.flush()  
+                session.commit() 
+                print("Commit bem-sucedido")
+                return jsonify({"message": "Saldo atualizado com sucesso!"}), 200
+            except Exception as e:
+                session.rollback()  
+                print(f"Erro ao dar commit: {e}")
+                return jsonify({"message": "Erro ao atualizar o saldo"}), 500
+        else:
+            return jsonify({"message": "Usuário não encontrado"}), 404
+
+    except Exception as e:
+        session.rollback()  # Desfaz alterações em caso de erro
+        print(f"Erro ao atualizar o saldo: {str(e)}")
+        return jsonify({'error': 'Erro ao atualizar o saldo.'}), 500
+
+    finally:
+        session.close()  # Fecha a sessão
 
 
 
@@ -379,7 +441,7 @@ def login():
 
 scheduler.add_job(
     func=my_cron_job,
-    trigger=IntervalTrigger(seconds=60),
+    trigger=IntervalTrigger(seconds=300),
 
 ) 
 
