@@ -3,14 +3,22 @@ import { IconButton, FlatList, NativeBaseProvider, VStack, HStack, Box, Button, 
 import { FontAwesome } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native-paper';
 import GlobalContext from '../../globalcontext';
+import io from 'socket.io-client';
+
+/*Errinho de lógica da rodada - tô passando a pontuação do jogador na fase de compra... isso nao era pra ser exibido nesse momento...
+é bom a gente tirar a pontuação e tem q criar 2 estados nessa tela - mercado abero e mercado fechado/ resultado da rodada.
+(então s.. td essa junção que eu fiz foi meio inútil, se bem q ja tendo essa info no item.pontuacao facilita pra exibir depois)
+Além disso, tava olhando o figma... tem muita tela pra fazer ainda */ 
 
 
 const EscalacaoScreen = () => {
   const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
-  
-  const [userMoney, setUserMoney] = useState(1000);
+  const [rodadaAtual, setRodadaAtual] = useState(null);
+  const [userMoney, setUserMoney] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclose();
   const [selectedPosition, setSelectedPosition] = useState(null);
+  const [teamName, setTeamName] = useState(null);
+  const [error, setError] = useState(null);
 
   const [comprados, setComprados] = useState({
     'Ala armador': null,
@@ -28,8 +36,77 @@ const EscalacaoScreen = () => {
   });
 
   useEffect(() => {
-    fetchJogadores();
-  }, []);
+    const socket = io(`http://${ip}:${porta}`);
+    socket.on('update', (data) => {
+      setRodadaAtual(data.current_round_id);
+      fetchJogadores();
+    });
+
+    socket.on('info', (data) => {
+      setRodadaAtual(data.current_round_id);
+      fetchJogadores();
+    });
+
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [ip, porta]);
+
+  useEffect(() => {
+    if (userName) {
+      fetchUserInfo();
+    }
+  }, [userName]);
+
+
+
+  
+  
+
+  const fetchUserInfo = async () => {
+    try {
+      const response = await fetch(`http://${ip}:${porta}/get_user_info?username=${userName}`);
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Atualiza o estado com o dinheiro do usuário e o nome do time
+        setUserMoney(data.money);
+        setTeamName(data.fantasy_team);
+        
+        // Povoar o dicionário de comprados com os jogadores retornados
+        console.log('Jogadores recebidos:', data.players);
+
+        // Povoar o dicionário de comprados com os jogadores retornados
+        // Cria uma cópia do estado atual
+      const novosComprados = { ...comprados };
+
+      data.players.forEach((player) => {
+        console.log('Processando jogador:', player);
+
+        // Atualiza diretamente com o jogador para a posição correspondente
+        novosComprados[player.posicao] = player;
+      });
+
+      console.log('comprados NOVO atualizado:', novosComprados);
+
+      // Atualiza o estado
+      setComprados(novosComprados);
+      console.log('comprados atualizado:', comprados);
+        
+        //print(comprados)
+        
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Erro ao buscar informações do usuário');
+      }
+    } catch (err) {
+      setError('Erro ao se conectar com o servidor');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
 
   const fetchJogadores = async () => {
     try {
@@ -56,7 +133,85 @@ const EscalacaoScreen = () => {
     }, 1000);
   };
 
-  const buyPlayer = (jogador) => {
+  const insertLineup = async (team_name, player_id) => {
+    try {
+      const response = await fetch(`http://${ip}:${porta}/insert_lineup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          team_name: team_name,
+          player_id: player_id,
+        }),
+      });
+  
+      const result = await response.json();
+      if (response.ok) {
+        alert(result.message);  // Exibe mensagem de sucesso
+      } else {
+        alert(result.error);  // Exibe mensagem de erro
+      }
+    } catch (error) {
+      console.error('Erro ao inserir jogador:', error);
+      alert('Erro ao conectar ao servidor');
+    }
+  };
+  
+  const removeLineup = async (team_name, player_id) => {
+    try {
+      const response = await fetch(`http://${ip}:${porta}/remove_lineup`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          team_name: team_name,
+          player_id: player_id,
+        }),
+      });
+
+      console.log(player_id, team_name);
+  
+      const result = await response.json();
+      if (response.ok) {
+        alert(result.message);  // Exibe mensagem de sucesso
+      } else {
+        alert(result.error);  // Exibe mensagem de erro
+      }
+    } catch (error) {
+      console.error('Erro ao remover jogador:', error);
+      alert('Erro ao conectar ao servidor');
+    }
+  };
+
+
+  const insertMoney = async (username, newMoneyAmount) => {
+    try {
+      const response = await fetch(`http://${ip}:${porta}/update_user_money`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username,
+          new_money: newMoneyAmount,
+        }),
+      });
+  
+      const result = await response.json();
+      if (response.ok) {
+        console.log('Saldo atualizado com sucesso:', result.message);
+      } else {
+        console.error('Erro ao atualizar o saldo:', result.error);
+      }
+    } catch (error) {
+      console.error('Erro ao conectar ao servidor:', error);
+    }
+  };
+
+
+  const buyPlayer = async (jogador) => {
     if (comprados[selectedPosition]?.id === jogador.id) {
       alert('Este jogador já foi comprado.');
       return;
@@ -65,12 +220,20 @@ const EscalacaoScreen = () => {
     if (userMoney >= jogador.valor) {
       const previousPlayer = comprados[selectedPosition];
       let newMoney = userMoney - jogador.valor;
+      console.log(jogador.valor)
+      console.log(newMoney)
 
       if (previousPlayer) {
         newMoney += previousPlayer.valor;
+        await removeLineup(teamName, previousPlayer.id);
       }
 
+      await insertLineup(teamName , jogador.id);
+
       setUserMoney(newMoney);
+
+      await insertMoney(userName, newMoney); 
+
       setComprados({ ...comprados, [selectedPosition]: jogador });
       onClose();
     } else {
@@ -78,15 +241,18 @@ const EscalacaoScreen = () => {
     }
   };
 
-  const cancelPurchase = (jogador) => {
+  const cancelPurchase = async (jogador) => {
     const newMoney = userMoney + jogador.valor;
     setUserMoney(newMoney);
+    await insertMoney(userName, newMoney);
 
     setComprados((prevComprados) => {
       const updatedComprados = { ...prevComprados };
       updatedComprados[selectedPosition] = null;
       return updatedComprados;
     });
+
+    removeLineup(teamName, jogador.id)
   };
 
   const renderButtonIcon = (position) => {
@@ -108,23 +274,11 @@ const EscalacaoScreen = () => {
   const isComplete = Object.values(comprados).every(jogador => jogador !== null);
 
   function renderItem({ item }) {
-    const pontuacao = 
-    1.5 * item.arremessos_3pontos +
-    1 * item.arremessos_2pontos +
-    0.8 * item.lances_livres_convertidos +
-    1.5 * item.rebotes_totais +
-    1.5 * item.bolas_recuperadas +
-    1.5 * item.tocos +
-    -0.5 * item.erros +
-    5 * item.duplos_duplos +
-    2 * item.enterradas +
-    1.5 * item.assistencias;
-
     return (
       <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
         <VStack>
           <Text bold>{item.nome}</Text>
-          <Text>Pontuação: {pontuacao.toFixed(2)}</Text>
+          <Text>Pontuação: {item.pontuacao.toFixed(2)}</Text>
           <Text>Valor: R${item.valor}</Text>
           <Text>Time: {item.time}</Text>
           <Text>Posição: {item.posicao}</Text>
@@ -163,10 +317,13 @@ const EscalacaoScreen = () => {
         
         <HStack w="100%" py={4} bg="warmGray.400" justifyContent="space-between" alignItems="center" px={4}>
           <Flex flex={1} alignItems="center">
-            <Text color="white" fontWeight="bold">R${userMoney.toFixed(2)}</Text>
+            <Text color="white" fontWeight="bold">R${(userMoney ?? 0).toFixed(2)}</Text>
           </Flex>
           <Flex flex={1} alignItems="center">
-            <Text color="white" fontWeight="bold">Rodada: 1</Text>
+            {/* Verifica se a rodadaAtual está definida antes de exibir */}
+            <Text color="white" fontWeight="bold">
+              Rodada: {rodadaAtual !== null ? rodadaAtual : '-'}
+            </Text>
           </Flex>
           <Flex flex={1} alignItems="center" flexDirection="row" justifyContent="center">
             <FontAwesome name={isComplete ? "check-circle" : "times-circle"} size={24} color="white" />

@@ -1,4 +1,5 @@
-import React, { useContext,useState,useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native'; 
 import {
   NativeBaseProvider,
   Box,
@@ -14,34 +15,40 @@ import GlobalContext from '../../globalcontext';
 const backgroundImage = require("../../../assets/images/nbb-brasil.png");
 
 export default function HomeScreen() {
-  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
+  const { userName, ip, porta } = useContext(GlobalContext);
   
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const response = await fetch(`http://${ip}:${porta}/get_user_info?username=${userName}`);
-        if (response.ok) {
-          const data = await response.json();
-          setUserInfo(data);
-        } else {
-          const errorData = await response.json();
-          setError(errorData.error || 'Erro ao buscar informações do usuário');
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchUserInfo = async () => {
+        setLoading(true);
+        try {
+          const response = await fetch(`http://${ip}:${porta}/get_user_info?username=${userName}`);
+          if (response.ok) {
+            const data = await response.json();
+            setUserInfo(data);
+          } else {
+            const errorData = await response.json();
+            setError(errorData.error || 'Erro ao buscar informações do usuário');
+          }
+        } catch (err) {
+          setError('Erro ao se conectar com o servidor');
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        setError('Erro ao se conectar com o servidor');
-      } finally {
+      };
+
+      if (userName && ip && porta) {
+        fetchUserInfo();
+      } else {
+        setError('Parâmetros de configuração ausentes.');
         setLoading(false);
       }
-    };
-
-    if (userName) {
-      fetchUserInfo();
-    }
-  }, [userName]);
+    }, [userName, ip, porta]) // Dependências para atualizar o fetch
+  );
 
   if (loading) {
     return (
@@ -63,15 +70,9 @@ export default function HomeScreen() {
     );
   }
 
-
-
-
-
-
   return (
     <NativeBaseProvider>
       <Box flex={1} justifyContent="center" alignItems="center">
-        {/* Imagem de fundo */}
         <Image
           source={backgroundImage}
           position="absolute"
@@ -80,43 +81,31 @@ export default function HomeScreen() {
           resizeMode="cover"
           alt="Background de NBB Brasil"
         />
-
-        {/* Caixa laranja para informações do time */}
         <Box
           mt={-10}
-          backgroundColor='orange.400'   //orange 400
-          //color='green.600'
-          borderRadius={10} 
+          backgroundColor='orange.400'
+          borderRadius={10}
           opacity={0.9}
           width="75%"
           height="50%"
         >
-          {/* Emblema e Nome do Time lado a lado */}
-          <Box flexDirection="row" alignItems="center"  ml={5} mt={5}>
-            {/* Caixa cinza para o emblema */}
+          <Box flexDirection="row" alignItems="center" ml={5} mt={5}>
             <Box
               backgroundColor="#D3D3D3"
               borderRadius={10}
               width={24}
               height={24}
             >
-              <Text>{userInfo.emblema}</Text> {/* Emblema */}
+              <Text>{userInfo.emblema}</Text>
             </Box>
-
-            {/* Nome do time */}
             <Box ml={10}>
-              <Heading size="sm">Time: {userInfo.teamName}</Heading>
+              <Heading size="sm">Time: {userInfo.fantasy_team}</Heading>
             </Box>
           </Box>
-
-          {/* Texto "Pontuação Total" */}
           <Box mt={-13} ml={150}>
             <Text>Pontuação Total: </Text>
           </Box>
-
-          {/* Caixa para dinheiro e pontuação total */}
           <Box flexDirection="row" justifyContent="flex-start" alignItems="center" ml={6} mt={2}>
-            {/* Caixa para dinheiro */}
             <Box
               backgroundColor="#32CD32"
               borderRadius={5}
@@ -125,12 +114,10 @@ export default function HomeScreen() {
               width={20}
               height={8}
             >
-              <Text>{userInfo.dinheiro}</Text>
+              <Text>{userInfo.money}</Text>
             </Box>
-
-            {/* Caixa para pontuação total */}
             <Box ml={65}
-              backgroundColor="#D3D3D3" 
+              backgroundColor="#D3D3D3"
               borderRadius={5}
               alignItems="center"
               justifyContent="center"
@@ -140,25 +127,17 @@ export default function HomeScreen() {
               <Text>{userInfo.pontuacao}</Text>
             </Box>
           </Box>
-
-          {/* Linha divisória */}
           <Divider borderWidth={1} borderColor="#A9A9A9" my={8} />
-
-          {/* Status da Escalação */}
           <Box flexDirection="row" alignItems="center" ml={5}>
-            {/* Espaço para imagem circular */}
             <Box
               backgroundColor="#D3D3D3"
               borderRadius="full"
               width={75}
               height={75}
             />
-
             <Text ml={10} mt={-10}>Status da Escalação</Text>
           </Box>
-
-          {/* Botão Revisar alinhado abaixo do Status da Escalação */}
-          <Box alignItems="center" mt={-10} ml={20}> 
+          <Box alignItems="center" mt={-10} ml={20}>
             <Button
               backgroundColor="#D3D3D3"
               borderRadius="full"

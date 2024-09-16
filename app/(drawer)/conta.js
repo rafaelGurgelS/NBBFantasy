@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   VStack,
   Heading,
@@ -7,27 +7,63 @@ import {
   Button,
   Icon,
   useToast,
+  Modal,
 } from 'native-base';
 import { TouchableOpacity, ImageBackground, StyleSheet, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { useRouter } from 'expo-router';
+import GlobalContext from '../globalcontext';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Conta() {
   const router = useRouter(); 
   const toast = useToast();
+  const navigation = useNavigation();
 
-  const [email, setEmail] = useState('user@example.com');
-  const [senha, setSenha] = useState('********');
-  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const { userName, setuserName, ip, porta, senha, setSenha } = useContext(GlobalContext); 
   const [isEditingSenha, setIsEditingSenha] = useState(false);
+  const [newSenha, setNewSenha] = useState(senha);
+  const [showModal, setShowModal] = useState(false); 
 
-  const toggleEditEmail = () => {
-    setIsEditingEmail(!isEditingEmail);
-    if (isEditingEmail) {
+  const updateUsuario = async (updatedSenha) => {
+    console.log('Enviando dados para o backend:', {
+      username: userName,
+      new_password: updatedSenha,
+    });
+  
+    try {
+      const response = await fetch(`http://${ip}:${porta}/update_usuario`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: userName,
+          new_password: updatedSenha,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          toast.show({
+            title: "Sucesso",
+            description: "Informações atualizadas com sucesso!",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        } else {
+          throw new Error(data.message || 'Erro ao atualizar');
+        }
+      } else {
+        throw new Error('Erro de rede ou do servidor');
+      }
+    } catch (error) {
       toast.show({
-        title: "Sucesso",
-        description: "Email editado com sucesso!",
-        status: "success",
+        title: "Erro",
+        description: `Falha ao atualizar informações: ${error.message}`,
+        status: "error",
         duration: 3000,
         isClosable: true,
       });
@@ -35,47 +71,73 @@ export default function Conta() {
   };
 
   const toggleEditSenha = () => {
-    setIsEditingSenha(!isEditingSenha);
-    if (isEditingSenha) {
-      toast.show({
-        title: "Sucesso",
-        description: "Senha editada com sucesso!",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+    if (isEditingSenha && newSenha !== senha) { 
+      if (newSenha.length >= 8) { // Verifica se a nova senha tem pelo menos 8 caracteres
+        updateUsuario(newSenha); // Envia o novo nome de usuário e senha
+        setSenha(newSenha); // Atualiza no contexto global
+      } else {
+        toast.show({
+          title: "Erro",
+          description: "A senha deve ter pelo menos 8 caracteres.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     }
-  };
-
-  const handleInputClick = (type) => {
-    if (type === 'email' && !isEditingEmail) {
-      toast.show({
-        title: "Atenção",
-        description: "Clique no ícone de lápis para editar o email.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-    } else if (type === 'senha' && !isEditingSenha) {
-      toast.show({
-        title: "Atenção",
-        description: "Clique no ícone de lápis para editar a senha.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
+    setIsEditingSenha(!isEditingSenha); // Alterna o modo de edição
   };
 
   const handleDeleteAccount = () => {
-    toast.show({
-      title: "Confirmação",
-      description: "Tem certeza de que deseja excluir sua conta?",
-      status: "warning",
-      duration: 3000,
-      isClosable: true,
-    });
+    setShowModal(true);
   };
+
+  const deleteUsuario = async () => {
+    try {
+        // Verificar o valor de `ip`, `porta` e `userName`
+        console.log(`URL: http://${ip}:${porta}/delete_usuario`);
+        console.log(`Body: ${JSON.stringify({ username: userName })}`);
+      
+        const response = await fetch(`http://${ip}:${porta}/delete_usuario`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username: userName }),
+        });
+
+        // Verificar o status da resposta
+        const responseBody = await response.json();
+        console.log('Response Status:', response.status);
+        console.log('Response Body:', responseBody);
+      
+        if (response.ok) {
+            toast.show({
+                title: "Sucesso",
+                description: "Conta excluída com sucesso!",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+            setShowModal(false); // Fechar modal
+            setuserName(null);
+            setSenha(null);
+            router.push('/');
+        } else {
+            // Detalhes do erro para depuração
+            throw new Error(responseBody.error || 'Erro ao excluir a conta.');
+        }
+    } catch (error) {
+        toast.show({
+            title: "Erro",
+            description: `Falha ao excluir a conta: ${error.message}`,
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+        });
+    }
+};
+
 
   return (
     <View style={styles.container}>
@@ -94,7 +156,7 @@ export default function Conta() {
         >
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.push('/(drawer)/(tabs)/home')}
+            onPress={() => navigation.goBack()}
           >
             <Icon as={MaterialIcons} name="arrow-back" size={10} color="#FFFFFF" />
           </TouchableOpacity>
@@ -105,31 +167,8 @@ export default function Conta() {
 
           <View style={styles.textContainer}>
             <Text fontSize={25} color="#FFFFFF" textAlign="left">
-              Email:
+              Nome de usuário: {userName}
             </Text>
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Input
-              placeholder="Email"
-              variant="filled"
-              width="100%"
-              backgroundColor="#D9D9D9"
-              borderRadius="full"
-              height={50}
-              fontSize={16}
-              value={email}
-              onChangeText={setEmail}
-              isReadOnly={!isEditingEmail}
-              mb={4}
-              onTouchStart={() => handleInputClick('email')}
-            />
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={toggleEditEmail}
-            >
-              <Icon as={MaterialIcons} name={isEditingEmail ? "check" : "edit"} size={6} color="#FFFFFF" />
-            </TouchableOpacity>
           </View>
 
           <View style={styles.textContainer}>
@@ -147,11 +186,10 @@ export default function Conta() {
               borderRadius="full"
               height={50}
               fontSize={16}
-              value={senha}
-              onChangeText={setSenha}
+              value={newSenha} // Usando o novo valor local
+              onChangeText={setNewSenha} // Atualizando o estado local
               isReadOnly={!isEditingSenha}
-              mb={6} // Espaço aumentado entre o campo da senha e o botão
-              onTouchStart={() => handleInputClick('senha')}
+              mb={6}
               secureTextEntry
             />
             <TouchableOpacity
@@ -162,7 +200,6 @@ export default function Conta() {
             </TouchableOpacity>
           </View>
 
-          {/* Container para o botão de excluir conta */}
           <View style={styles.deleteButtonContainer}>
             <Button
               style={styles.deleteButton}
@@ -172,6 +209,28 @@ export default function Conta() {
             </Button>
           </View>
         </VStack>
+
+        {/* Modal de Confirmação */}
+        <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="md">
+          <Modal.Content>
+            <Modal.CloseButton />
+            <Modal.Header>Confirmar Exclusão</Modal.Header>
+            <Modal.Body>
+              Tem certeza de que deseja excluir sua conta? Esta ação não pode ser desfeita.
+            </Modal.Body>
+            <Modal.Footer>
+              <Button.Group space={2}>
+                <Button variant="ghost" colorScheme="coolGray" onPress={() => setShowModal(false)}>
+                  Cancelar
+                </Button>
+                <Button colorScheme="red" onPress={deleteUsuario}>
+                  Excluir
+                </Button>
+              </Button.Group>
+            </Modal.Footer>
+          </Modal.Content>
+        </Modal>
+        
       </ImageBackground>
     </View>
   );
@@ -211,15 +270,15 @@ const styles = StyleSheet.create({
   },
   deleteButtonContainer: {
     width: '100%',
-    alignItems: 'center', // Centraliza o botão horizontalmente
-    marginTop: 40, // Espaço antes do botão
+    alignItems: 'center', 
+    marginTop: 40, 
   },
   deleteButton: {
     backgroundColor: '#FFFFFF',
     borderRadius: 25,
     borderColor: '#FC9904',
     borderWidth: 1,
-    width: '80%', // Largura do botão
+    width: '80%', 
     paddingVertical: 12,
   },
   deleteButtonText: {

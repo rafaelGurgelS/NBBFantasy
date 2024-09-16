@@ -28,8 +28,8 @@ class User(Base):
     password = Column(String(100), nullable=False)
     money = Column(Float, nullable=False)  
 
-    scores=relationship("UserHasScore")
-    fantasy_team=relationship("FantasyTeam",uselist=False)
+    scores = relationship("UserHasScore")
+    fantasy_team = relationship('FantasyTeam', backref='user', cascade='all, delete-orphan', uselist=False)
     
 
 class FantasyTeam(Base):
@@ -38,7 +38,7 @@ class FantasyTeam(Base):
     team_name = Column(String(100), primary_key=True, nullable=False)
     emblem = Column(String(255), nullable=True) 
 
-    username = Column(String(50), ForeignKey('Users.username'), nullable=False)
+    username = Column(String(50), ForeignKey('Users.username', ondelete='CASCADE'), nullable=False)
 
     # Relacionamento com a tabela lineup
     lineup = relationship("Lineup")
@@ -50,7 +50,6 @@ class Player(Base):
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(String(100), nullable=False)
     real_team = Column(String(50), nullable=False)
-    value = Column(Float, nullable=False)
     position = Column(String(50), nullable=False)
 
     lineup = relationship("Lineup")
@@ -119,6 +118,22 @@ class UserHasScore(Base):
     user_id = Column(String(50),ForeignKey('Users.username'),primary_key=True, nullable=False)
     round_id = Column(Integer,ForeignKey('Rounds.id'),primary_key=True, nullable=False)
     score = Column(Float, nullable=False)
+
+class PlayerScore(Base):
+    __tablename__ = 'PlayerScores'
+
+
+    id_player = Column(Integer, ForeignKey('Players.id'), primary_key=True, nullable=False)  
+    id_round = Column(Integer, ForeignKey('Rounds.id'), primary_key=True, nullable=False)   
+    score = Column(Float, nullable=False) 
+    value = Column(Float, nullable=False) 
+    
+    player = relationship("Player", backref="scores")  
+    round = relationship("Round", backref="player_scores") 
+
+# Adiciona a nova tabela no banco de dados
+Base.metadata.create_all(engine)
+
 
 
 # Criação das tabelas no banco de dados (sem excluir dados existentes)

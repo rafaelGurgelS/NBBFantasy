@@ -13,14 +13,13 @@ import {
   HStack
 } from "native-base";
 import { useRouter, Link } from "expo-router";
-import GlobalContext from './globalcontext.js'; // Importe o contexto global
+import GlobalContext from './globalcontext.js'; 
 
 export default function Home() {
   const router = useRouter();
-  const [senha, setSenha] = useState("");
   const toast = useToast();
 
-  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext); // Usa o contexto global
+  const { userName, setuserName, ip, setIP, porta, setPorta, senha, setSenha } = useContext(GlobalContext); // Usa o contexto global
   
   const handleLogin = async () => {
     if (!userName || !senha) {

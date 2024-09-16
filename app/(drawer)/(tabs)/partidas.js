@@ -21,8 +21,16 @@ const PartidasScreen = () => {
     socket.on('update', (data) => {
       console.log('Atualização recebida:', data);
   
-      // Obter o valor atual de rodadaAtual antes de buscar as partidas
-      const currentRodada = rodadaAtual;
+      fetchPartidas().then(() => {
+        // Após fetchPartidas, garantir que rodadaAtual seja atualizado com base no valor recebido
+        if (data.current_round_id && rodadaAtual !== data.current_round_id) {
+          setRodadaAtual(data.current_round_id);
+        }
+      });
+    });
+
+    socket.on('info', (data) => {
+      console.log('Atualização recebida:', data);
   
       fetchPartidas().then(() => {
         // Após fetchPartidas, garantir que rodadaAtual seja atualizado com base no valor recebido
@@ -31,7 +39,7 @@ const PartidasScreen = () => {
         }
       });
     });
-  
+    
     // Limpar a conexão quando o componente for desmontado
     return () => {
       socket.disconnect();
