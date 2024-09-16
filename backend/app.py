@@ -9,6 +9,7 @@ from sqlalchemy.engine import URL
 from flask_socketio import SocketIO, emit
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+import time
 
 # Configuração da URL do banco de dados
 url = URL.create(
@@ -30,8 +31,19 @@ socketio = SocketIO(app)
 scheduler = BackgroundScheduler()
 
 current_round_id = 0
+waiting_for_next_round = False
 
-def my_cron_job():
+## fazer 2 cron_job: um pra atualizar a rodada e outro pra mandar a rodada atual. esse de mandar a rodada atual roda com mais frequência.
+
+
+def send_round():
+    global current_round_id
+    socketio.emit('info', {'current_round_id': current_round_id})
+    print("mandando rodada atual")
+
+
+
+def update_round():
     global current_round_id
     # Code to be executed by the cron job
     if current_round_id == 0:
@@ -213,19 +225,62 @@ def criar_time():
 
 @app.route('/get_user_info', methods=['GET'])
 def get_user_info():
+    global current_round_id  # Suponho que o current_round_id já esteja definido em outro lugar
+    
     username = request.args.get('username')
     if not username:
         return jsonify({'error': 'Username parameter is required'}), 400
 
     try:
+        # Consulta o usuário e o time de fantasia
         user = session.query(db.User).filter_by(username=username).first()
 
         if user:
+            # Obtém o nome do time de fantasia do usuário
+            team_name = user.fantasy_team.team_name
+             ## tratar o caso em que nao tem nenhum   
+            # Busca os jogadores na lineup do time de fantasia na rodada atual
+            lineup = session.query(db.Lineup).filter_by(team_name=team_name, round_id=current_round_id).all()
+            
+            # Obter todos os player_ids da lineup
+            player_ids = [lineup_item.player_id for lineup_item in lineup]
+
+            # Consultar os detalhes dos jogadores
+            #players = session.query(db.Player).filter(db.Player.id.in_(player_ids)).all()
+
+            jogadores = session.query(
+                db.Player,
+                db.PlayerScore
+            ).join(
+                db.PlayerScore, db.Player.id == db.PlayerScore.id_player
+            ).filter(
+                db.PlayerScore.id_round == current_round_id,
+                db.Player.id.in_(player_ids)
+            ).all()
+            
+           
+
+            # Criar uma lista com as informações dos jogadores
+            jogadores_list = []
+            for jogador, score in jogadores:
+                print(jogador.name)
+                jogadores_list.append({
+                    'id': jogador.id,
+                    'nome': jogador.name,
+                    'valor': score.value,   ##valor da tabela PlayerScore
+                    'time': jogador.real_team,
+                    'posicao': jogador.position,
+                    'pontuacao': score.score  # Pontuação da tabela PlayerScore
+                })
+
+            # Criar a resposta JSON com as informações do usuário, time e lineup
             user_info = {
                 'money': user.money,
-                'fantasy_team': user.fantasy_team.team_name,
-                'emblema': user.fantasy_team.emblem
+                'fantasy_team': team_name,
+                'emblema': user.fantasy_team.emblem,
+                'players': jogadores_list  # Adiciona as informações dos jogadores da lineup
             }
+
             return jsonify(user_info), 200
         else:
             return jsonify({'error': 'User not found'}), 404
@@ -440,10 +495,16 @@ def login():
 
 
 scheduler.add_job(
-    func=my_cron_job,
-    trigger=IntervalTrigger(seconds=300),
+    func=update_round,
+    trigger=IntervalTrigger(seconds=120),
 
-) 
+)
+
+scheduler.add_job(
+    func=send_round,
+    trigger=IntervalTrigger(seconds=10),  ## no pior caso, tem que esperar 30s... mas se fosse muio alta a frequência tenho medo de sobrecarregar
+
+)
 
 scheduler.start()
 

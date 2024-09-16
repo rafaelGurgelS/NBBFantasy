@@ -10,8 +10,6 @@ import io from 'socket.io-client';
 (então s.. td essa junção que eu fiz foi meio inútil, se bem q ja tendo essa info no item.pontuacao facilita pra exibir depois)
 Além disso, tava olhando o figma... tem muita tela pra fazer ainda */ 
 
-//lembrar de atualizar o userMoney no BD
-
 
 const EscalacaoScreen = () => {
   const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
@@ -43,6 +41,13 @@ const EscalacaoScreen = () => {
       setRodadaAtual(data.current_round_id);
       fetchJogadores();
     });
+
+    socket.on('info', (data) => {
+      setRodadaAtual(data.current_round_id);
+      fetchJogadores();
+    });
+
+
     return () => {
       socket.disconnect();
     };
@@ -54,13 +59,43 @@ const EscalacaoScreen = () => {
     }
   }, [userName]);
 
+
+
+  
+  
+
   const fetchUserInfo = async () => {
     try {
       const response = await fetch(`http://${ip}:${porta}/get_user_info?username=${userName}`);
       if (response.ok) {
         const data = await response.json();
+        
+        // Atualiza o estado com o dinheiro do usuário e o nome do time
         setUserMoney(data.money);
         setTeamName(data.fantasy_team);
+        
+        // Povoar o dicionário de comprados com os jogadores retornados
+        console.log('Jogadores recebidos:', data.players);
+
+        // Povoar o dicionário de comprados com os jogadores retornados
+        // Cria uma cópia do estado atual
+      const novosComprados = { ...comprados };
+
+      data.players.forEach((player) => {
+        console.log('Processando jogador:', player);
+
+        // Atualiza diretamente com o jogador para a posição correspondente
+        novosComprados[player.posicao] = player;
+      });
+
+      console.log('comprados NOVO atualizado:', novosComprados);
+
+      // Atualiza o estado
+      setComprados(novosComprados);
+      console.log('comprados atualizado:', comprados);
+        
+        //print(comprados)
+        
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Erro ao buscar informações do usuário');
@@ -71,6 +106,7 @@ const EscalacaoScreen = () => {
       setLoading(false);
     }
   };
+  
 
   const fetchJogadores = async () => {
     try {
@@ -286,7 +322,7 @@ const EscalacaoScreen = () => {
           <Flex flex={1} alignItems="center">
             {/* Verifica se a rodadaAtual está definida antes de exibir */}
             <Text color="white" fontWeight="bold">
-              Rodada: {rodadaAtual !== null ? rodadaAtual : '1'}
+              Rodada: {rodadaAtual !== null ? rodadaAtual : '-'}
             </Text>
           </Flex>
           <Flex flex={1} alignItems="center" flexDirection="row" justifyContent="center">
