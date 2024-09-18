@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, ActivityIndicator, Alert } from 'react-native';
-import { NativeBaseProvider, Box, Text, VStack, HStack } from 'native-base';
-import { useRoute } from '@react-navigation/native';
+import { View, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { NativeBaseProvider, Box, Text, VStack, HStack, Button, Avatar, IconButton, Icon } from 'native-base';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons'; // Expo ícones para a seta
 import GlobalContext from '../globalcontext';
 
 const LeagueDetails = () => {
   const route = useRoute();
-  const { leagueId } = route.params; // Obtendo o leagueId passado na navegação
+  const navigation = useNavigation();
+  const { leagueId } = route.params;
   const { ip, porta } = useContext(GlobalContext);
   const [league, setLeague] = useState(null);
 
@@ -15,7 +17,7 @@ const LeagueDetails = () => {
       try {
         const response = await fetch(`http://${ip}:${porta}/leagueInfo?league_id=${leagueId}`);
         const data = await response.json();
-        console.log("League Details:", data); // Verifique o formato dos dados recebidos
+        console.log("League Details:", data);
         setLeague(data);
       } catch (error) {
         Alert.alert('Erro', 'Não foi possível carregar os detalhes da liga.');
@@ -37,28 +39,65 @@ const LeagueDetails = () => {
 
   return (
     <NativeBaseProvider>
-      <View style={{ flex: 1, padding: 16 }}>
+      <View style={{ flex: 1, padding: 16, paddingTop: 40 }}>
         <VStack space={4}>
-          {/* Cabeçalho com o nome da liga */}
-          <Box bg="coolGray.200" p={5} rounded="md" shadow={2} mb={4}>
-            <Text fontSize="2xl" bold mb={1}>{league.name}</Text>
-            <Text fontSize="md" color="coolGray.600">{league.description}</Text>
-          </Box>
+          {/* Cabeçalho com seta de retorno e nome da liga */}
+          <HStack alignItems="center">
+            <IconButton
+              icon={
+                <Icon
+                  as={MaterialIcons}
+                  name="arrow-back"
+                  size="xl"
+                  color="black" // Define a cor do ícone como preto
+                />
+              }
+              onPress={() => navigation.goBack()} // Voltar à tela anterior
+            />
+            <Box flex={1} alignItems="center">
+              <Text fontSize="2xl" bold>{league.name}</Text>
+            </Box>
+          </HStack>
 
-          {/* Lista de membros */}
+          {/* Linha divisória usando a cor padrão */}
+          <Box
+            borderBottomWidth={2}
+            borderBottomColor="#FC9904" // Cor padrão do seu app
+            mt={4} // Margem superior para espaçar do cabeçalho
+          />
+
+          {/* Lista de membros em estilo tabela */}
           <Box bg="coolGray.100" p={5} rounded="md" shadow={2}>
-            <Text fontSize="lg" bold mb={2}>Ranking dos Membros</Text>
             {league.members && league.members.length > 0 ? (
               league.members.map((member, index) => (
-                <HStack key={member.username || index} justifyContent="space-between" mb={2} p={2} borderBottomWidth={1} borderBottomColor="coolGray.300">
-                  <Text>{member.username}</Text>
-                  {/* Exiba o valor adequado para o score se disponível */}
-                  <Text bold>{member.score || 'N/A'}</Text>
+                <HStack
+                  key={member.username || index}
+                  justifyContent="space-between"
+                  alignItems="center"
+                  borderBottomWidth={1}
+                  borderBottomColor="coolGray.300"
+                  py={2}
+                >
+                  <HStack alignItems="center" space={3}>
+                    <Avatar bg="gray.500" size="sm" />
+                    <Text>{member.username === 'Você' ? 'Você' : member.username}</Text>
+                  </HStack>
+                  <Text>{member.score || 'N/A'} pts</Text>
+                  <Text>{index + 1}º</Text>
                 </HStack>
               ))
             ) : (
               <Text>Nenhum membro encontrado.</Text>
             )}
+          </Box>
+
+          {/* Botão de sair da liga */}
+          <Box alignItems="center" mt={4}>
+            <TouchableOpacity onPress={() => Alert.alert('Sair da liga', 'Você saiu da liga!')}>
+              <Button colorScheme="red" borderRadius={20} px={6}>
+                Sair da liga
+              </Button>
+            </TouchableOpacity>
           </Box>
         </VStack>
       </View>

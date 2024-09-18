@@ -146,10 +146,11 @@ class LeagueMembership(Base):
     __tablename__ = 'LeagueMemberships'
 
     league_id = Column(Integer, ForeignKey('Leagues.id'), primary_key=True, nullable=False)
-    user_id = Column(String(50), ForeignKey('Users.username'), primary_key=True, nullable=False)
+    user_id = Column(String(50), ForeignKey('Users.username', ondelete='CASCADE'), primary_key=True, nullable=False)
 
     # Relacionamento com a tabela Users
     user = relationship("User", backref="leagues")
+
 
 
 # Adiciona a nova tabela no banco de dados
