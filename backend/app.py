@@ -494,6 +494,147 @@ def login():
         session.close()  # Fecha a sessão
 
 
+
+@app.route('/create_league', methods=['POST'])
+def create_league():
+    data = request.get_json()
+    league_name = data.get('name')
+    description = data.get('description')
+    username = data.get('username')
+
+    if not league_name or not username:
+        return jsonify({'error': 'Nome da liga e username são obrigatórios.'}), 400
+
+    try:
+        # Verifica se o usuário existe
+        user = session.query(db.User).filter_by(username=username).first()
+        if not user:
+            return jsonify({'error': 'Usuário não encontrado.'}), 404
+
+        # Cria a nova liga
+        new_league = db.League(name=league_name, description=description)
+        session.add(new_league)
+        session.commit()
+
+        # Associa o usuário à nova liga
+        membership = db.LeagueMembership(league_id=new_league.id, user_id=username)
+        session.add(membership)
+        session.commit()
+
+        return jsonify({'message': 'Liga criada com sucesso!'}), 201
+
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao criar liga: {str(e)}")
+        return jsonify({'error': 'Erro ao criar liga.'}), 500
+
+    finally:
+        session.close()
+
+
+@app.route('/leagues', methods=['GET'])
+def get_leagues():
+    username = request.args.get('username')
+    
+    if not username:
+        return jsonify({'error': 'Nome de usuário é obrigatório.'}), 400
+
+    try:
+        # Verifica se o usuário existe
+        user = session.query(db.User).filter_by(username=username).first()
+        if not user:
+            return jsonify({'error': 'Usuário não encontrado.'}), 404
+
+        # Busca as ligas associadas ao usuário
+        leagues = session.query(db.League).join(db.LeagueMembership).filter(db.LeagueMembership.user_id == username).all()
+
+        # Formata a resposta
+        leagues_data = [{'id': league.id, 'name': league.name} for league in leagues]
+
+        return jsonify(leagues_data), 200
+
+    except Exception as e:
+        print(f"Erro ao buscar ligas: {str(e)}")
+        return jsonify({'error': 'Erro ao buscar ligas.'}), 500
+
+    finally:
+        session.close()
+
+
+@app.route('/leagueInfo', methods=['GET'])
+def league_info():
+    try:
+        league_id = request.args.get('league_id', type=int)
+        print("Received league_id:", league_id)
+        
+        if not league_id:
+            return jsonify({'error': 'league_id parameter is required'}), 400
+
+        # Buscar a liga pelo ID
+        league = session.query(db.League).filter_by(id=league_id).first()
+        if not league:
+            return jsonify({'error': 'Liga não encontrada'}), 404
+        
+        # Buscar todos os usuários associados a esta liga
+        member_usernames = (
+            session.query(db.LeagueMembership.user_id)
+            .filter_by(league_id=league_id)
+            .all()
+        )
+        
+        # Extrair os usernames dos membros
+        usernames = [username for (username,) in member_usernames]
+        
+        # Buscar detalhes dos usuários e seus scores
+        members_details = (
+            session.query(db.User.username, db.UserHasScore.score)
+            .outerjoin(db.UserHasScore, db.User.username == db.UserHasScore.user_id)
+            .filter(db.User.username.in_(usernames))
+            .all()
+        )
+        
+        # Construir a lista de membros com detalhes
+        members = [
+            {
+                'username': username,
+                'score': score if score is not None else 'N/A'  # Use 'N/A' se o score não estiver disponível
+            }
+            for username, score in members_details
+        ]
+        
+        print("League Name:", league.name)
+        print("League Description:", league.description)
+        print("League Members:", members)
+
+        return jsonify({
+            'name': league.name,
+            'description': league.description,
+            'members': members
+        })
+    except Exception as e:
+        print("Exception:", e)
+        return jsonify({'error': str(e)}), 500
+
+
+
+@app.route('/search_leagues', methods=['GET'])
+def search_leagues():
+    try:
+        name = request.args.get('name', type=str)
+        if not name:
+            return jsonify({'error': 'Nome da liga é necessário'}), 400
+
+        # Buscar ligas que contenham o nome fornecido
+        leagues = session.query(db.League).filter(db.League.name.ilike(f'%{name}%')).all()
+        league_list = [{'id': league.id, 'name': league.name} for league in leagues]
+
+        return jsonify(league_list)
+    except Exception as e:
+        print("Exception:", e)
+        return jsonify({'error': str(e)}), 500
+
+
+
 scheduler.add_job(
     func=update_round,
     trigger=IntervalTrigger(seconds=120),

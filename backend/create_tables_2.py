@@ -41,7 +41,7 @@ class FantasyTeam(Base):
     username = Column(String(50), ForeignKey('Users.username', ondelete='CASCADE'), nullable=False)
 
     # Relacionamento com a tabela lineup
-    lineup = relationship("Lineup")
+    lineup = relationship("Lineup", backref="team", cascade="all, delete-orphan")
 
  
 class Player(Base):
@@ -130,6 +130,27 @@ class PlayerScore(Base):
     
     player = relationship("Player", backref="scores")  
     round = relationship("Round", backref="player_scores") 
+
+
+class League(Base):
+    __tablename__ = 'Leagues'
+
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    name = Column(String(100), nullable=False)
+    description = Column(String(255), nullable=True)
+
+    # Relacionamento com a tabela LeagueMembership
+    members = relationship("LeagueMembership", backref="league")
+
+class LeagueMembership(Base):
+    __tablename__ = 'LeagueMemberships'
+
+    league_id = Column(Integer, ForeignKey('Leagues.id'), primary_key=True, nullable=False)
+    user_id = Column(String(50), ForeignKey('Users.username'), primary_key=True, nullable=False)
+
+    # Relacionamento com a tabela Users
+    user = relationship("User", backref="leagues")
+
 
 # Adiciona a nova tabela no banco de dados
 Base.metadata.create_all(engine)
