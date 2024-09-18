@@ -511,6 +511,11 @@ def create_league():
         if not user:
             return jsonify({'error': 'Usuário não encontrado.'}), 404
 
+        # Verifica se a liga já existe
+        existing_league = session.query(db.League).filter_by(name=league_name).first()
+        if existing_league:
+            return jsonify({'error': 'Uma liga com esse nome já existe.'}), 400
+
         # Cria a nova liga
         new_league = db.League(name=league_name, description=description)
         session.add(new_league)
@@ -530,6 +535,7 @@ def create_league():
 
     finally:
         session.close()
+
 
 
 @app.route('/leagues', methods=['GET'])

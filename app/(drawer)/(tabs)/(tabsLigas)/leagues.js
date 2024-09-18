@@ -16,17 +16,19 @@ const Leagues = () => {
   const [leagueName, setLeagueName] = useState('');
   const [leagueDescription, setLeagueDescription] = useState('');
 
-  useEffect(() => {
-    const fetchLeagues = async () => {
-      try {
-        const response = await fetch(`http://${ip}:${porta}/leagues?username=${userName}`);
-        const data = await response.json();
-        setLeagues(data);
-      } catch (error) {
-        Alert.alert('Erro', 'Não foi possível carregar as ligas.');
-      }
-    };
 
+  const fetchLeagues = async () => {
+    try {
+      const response = await fetch(`http://${ip}:${porta}/leagues?username=${userName}`);
+      const data = await response.json();
+      setLeagues(data);
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível carregar as ligas.');
+    }
+  };
+
+  
+  useEffect(() => {
     fetchLeagues();
   }, [ip, porta, userName]);
 
@@ -41,35 +43,47 @@ const Leagues = () => {
     }
   };
 
-  const createLeague = async () => {
-    if (!leagueName) {
-      Alert.alert('Erro', 'O nome da liga é obrigatório.');
-      return;
-    }
+// Função para criar uma nova liga
+const createLeague = async () => {
+  if (!leagueName) {
+    Alert.alert('Erro', 'O nome da liga é obrigatório.');
+    return;
+  }
 
-    try {
-      const response = await fetch(`http://${ip}:${porta}/create_league`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: leagueName,
-          description: leagueDescription,
-          username: userName,
-        }),
-      });
+  try {
+    const response = await fetch(`http://${ip}:${porta}/create_league`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: leagueName,
+        description: leagueDescription,
+        username: userName,
+      }),
+    });
 
-      const data = await response.json();
-      Alert.alert('Sucesso!', data.message || data.error || 'Erro desconhecido.');
+    const data = await response.json();
+    
+    if (response.ok) {
+      Alert.alert('Sucesso!', data.message || 'Liga criada com sucesso!');
       setIsModalVisible(false);
       setLeagueName('');
       setLeagueDescription('');
-      fetchLeagues();
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível criar a liga.');
+      // Atualiza a lista de ligas
+      await fetchLeagues(); 
+    } else {
+      // Exibe o erro detalhado
+      Alert.alert('Erro', data.error || 'Erro desconhecido.');
+      console.error('Erro ao criar liga:', data.error || 'Erro desconhecido.');
     }
-  };
+  } catch (error) {
+    // Exibe o erro genérico e detalhado
+    Alert.alert('Erro', 'Não foi possível criar a liga.');
+    console.error('Erro ao criar liga:', error);
+  }
+};
+
 
   const handlePress = (league) => {
     router.push(`../../../leagueDetails/${league.id}`);
