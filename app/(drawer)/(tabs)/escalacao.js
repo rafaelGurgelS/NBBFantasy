@@ -61,9 +61,6 @@ const EscalacaoScreen = () => {
 
 
 
-  
-  
-
   const fetchUserInfo = async () => {
     try {
       const response = await fetch(`http://${ip}:${porta}/get_user_info?username=${userName}`);

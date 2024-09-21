@@ -14,6 +14,19 @@ import GlobalContext from '../../globalcontext';
 
 const backgroundImage = require("../../../assets/images/nbb-brasil.png");
 
+// Dados dos emblemas
+const emblemData = [
+  { id: '1', name: 'Emblema 1', image: require('../../../assets/images/emblems/icon_1.png') },
+  { id: '2', name: 'Emblema 2', image: require('../../../assets/images/emblems/icon_2.png') },
+  { id: '3', name: 'Emblema 3', image: require('../../../assets/images/emblems/icon_3.png') },
+  { id: '4', name: 'Emblema 4', image: require('../../../assets/images/emblems/icon_4.png') },
+  { id: '5', name: 'Emblema 5', image: require('../../../assets/images/emblems/icon_5.png') },
+  { id: '6', name: 'Emblema 6', image: require('../../../assets/images/emblems/icon_6.png') },
+  { id: '7', name: 'Emblema 7', image: require('../../../assets/images/emblems/icon_7.png') },
+  { id: '8', name: 'Emblema 8', image: require('../../../assets/images/emblems/icon_8.png') },
+  { id: '9', name: 'Emblema 9', image: require('../../../assets/images/emblems/icon_9.png') },
+];
+
 export default function HomeScreen() {
   const { userName, ip, porta } = useContext(GlobalContext);
   
@@ -70,6 +83,9 @@ export default function HomeScreen() {
     );
   }
 
+  // Encontrar o emblema com base no ID
+  const emblem = emblemData.find(e => e.id === userInfo.emblema);
+
   return (
     <NativeBaseProvider>
       <Box flex={1} justifyContent="center" alignItems="center">
@@ -90,14 +106,16 @@ export default function HomeScreen() {
           height="50%"
         >
           <Box flexDirection="row" alignItems="center" ml={5} mt={5}>
-            <Box
-              backgroundColor="#D3D3D3"
-              borderRadius={10}
-              width={24}
-              height={24}
-            >
-              <Text>{userInfo.emblema}</Text>
-            </Box>
+            {/* Renderizar a imagem do emblema sem o quadrado cinza */}
+            {emblem && (
+              <Image
+                source={emblem.image}
+                alt={emblem.name}
+                width={24}
+                height={24}
+                resizeMode="contain"
+              />
+            )}
             <Box ml={10}>
               <Heading size="sm">Time: {userInfo.fantasy_team}</Heading>
             </Box>
