@@ -655,6 +655,90 @@ def search_leagues():
         return jsonify({'error': str(e)}), 500
     
 
+@app.route('/leaveLeague', methods=['POST'])
+def leave_league():
+    data = request.get_json()
+
+    # Validando os dados recebidos
+    league_id = data.get('league_id')
+    user_id = data.get('user_id')
+
+    if not league_id or not user_id:
+        return jsonify({"error": "league_id and user_id are required"}), 400
+
+    try:
+        # Procurando a relação de 'membership' entre o usuário e a liga
+        membership = session.query(db.LeagueMembership).filter_by(league_id=league_id, user_id=user_id).first()
+
+        if not membership:
+            return jsonify({"error": "User is not a member of this league"}), 404
+
+        # Remover o usuário da liga
+        session.delete(membership)
+        session.commit()
+
+        return jsonify({"message": "User removed from the league successfully"}), 200
+
+    except Exception as e:
+        session.rollback()  # Reverte a transação em caso de erro
+        print(f"Error removing user from league: {e}")
+        return jsonify({"error": "An error occurred while trying to leave the league"}), 500
+
+    finally:
+        session.close()  # Fechar a sessão no final, independentemente de erro ou sucesso
+
+
+
+@app.route('/joinLeague', methods=['POST'])
+def join_league():
+    try:
+        # Obtém os dados da requisição JSON
+        data = request.get_json()
+        league_id = data.get('league_id')
+        user_id = data.get('user_id')  # O ID do usuário (username)
+
+        # Cria uma sessão do banco de dados
+        session = db.session
+
+        # Verifica se a liga e o usuário existem no banco de dados
+        league = session.query(db.League).get(league_id)
+        user = session.query(db.User).filter_by(username=user_id).first()
+
+        if not league:
+            return jsonify({"error": "Liga não encontrada"}), 404
+
+        if not user:
+            return jsonify({"error": "Usuário não encontrado"}), 404
+
+        # Verifica se o usuário já está na liga
+        existing_membership = session.query(db.LeagueMembership).filter_by(league_id=league_id, user_id=user_id).first()
+
+        if existing_membership:
+            return jsonify({"error": "Usuário já está na liga"}), 400
+
+        # Cria a associação entre o usuário e a liga
+        new_member = db.LeagueMembership(user_id=user_id, league_id=league_id)
+        session.add(new_member)
+        session.commit()
+
+        return jsonify({"message": f"Usuário {user_id} entrou na liga {league.name} com sucesso"}), 200
+
+    except Exception as e:
+        if session:
+            session.rollback()
+        print(f"Erro ao tentar adicionar o usuário à liga: {e}")
+        return jsonify({"error": "Erro ao tentar entrar na liga"}), 500
+
+    finally:
+        if session:
+            session.close()
+
+
+
+
+# -------------------------------------------------------------------- #
+
+
 
 # Função para calcular a pontuação total de um time fantasia para uma rodada específica
 def calculate_team_score(team_name, round_id, session):

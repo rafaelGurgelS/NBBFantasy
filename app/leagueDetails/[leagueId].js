@@ -9,23 +9,100 @@ const LeagueDetails = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { leagueId } = route.params;
-  const { ip, porta } = useContext(GlobalContext);
+  const { ip, porta, userName } = useContext(GlobalContext); // Supondo que você tenha o userId no contexto
   const [league, setLeague] = useState(null);
+  const [isMember, setIsMember] = useState(false); // Para controlar se o usuário está na liga ou não
+
+
+  const fetchLeagueDetails = async () => {
+    try {
+      const response = await fetch(`http://${ip}:${porta}/leagueInfo?league_id=${leagueId}`);
+      const data = await response.json();
+      console.log("League Details:", data);
+      setLeague(data);
+
+      // Verifica se o usuário está na liga
+      const member = data.members.find(member => member.username === userName);
+      setIsMember(!!member); // Define como true se o usuário está na liga
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível carregar os detalhes da liga.');
+    }
+  };
+
 
   useEffect(() => {
-    const fetchLeagueDetails = async () => {
-      try {
-        const response = await fetch(`http://${ip}:${porta}/leagueInfo?league_id=${leagueId}`);
-        const data = await response.json();
-        console.log("League Details:", data);
-        setLeague(data);
-      } catch (error) {
-        Alert.alert('Erro', 'Não foi possível carregar os detalhes da liga.');
-      }
-    };
-
     fetchLeagueDetails();
-  }, [leagueId, ip, porta]);
+  }, [leagueId, ip, porta, userName]);
+
+  // Função para sair da liga
+  const leaveLeague = async () => {
+    try {
+      const response = await fetch(`http://${ip}:${porta}/leaveLeague`, {
+        method: 'POST', // Ou 'DELETE', dependendo da sua API
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          league_id: leagueId,
+          user_id: userName, // Supondo que o userId está no contexto global
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert('Sucesso', 'Você saiu da liga com sucesso.');
+        setIsMember(false); // Atualiza para mostrar a opção de entrar na liga
+        fetchLeagueDetails();
+      } else {
+        Alert.alert('Erro', 'Não foi possível sair da liga.');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Erro', 'Ocorreu um erro ao tentar sair da liga.');
+    }
+  };
+
+  // Função para entrar na liga
+  const joinLeague = async () => {
+    try {
+      const response = await fetch(`http://${ip}:${porta}/joinLeague`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          league_id: leagueId,
+          user_id: userName, // Supondo que o userId está no contexto global
+        }),
+      });
+  
+      const data = await response.json(); // Recebe a mensagem do backend
+  
+      if (response.ok) {
+        Alert.alert('Sucesso', data.message || 'Você entrou na liga com sucesso.');
+        setIsMember(true); // Atualiza para mostrar a opção de sair da liga
+        fetchLeagueDetails();
+      } else {
+        Alert.alert('Erro', data.error || 'Não foi possível entrar na liga.');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Erro', 'Ocorreu um erro ao tentar entrar na liga.');
+    }
+  };
+  
+
+  // Função de confirmação antes de sair da liga
+  const confirmLeaveLeague = () => {
+    Alert.alert(
+      'Confirmação',
+      'Tem certeza que deseja sair da liga?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Sim', onPress: leaveLeague },
+      ],
+      { cancelable: true }
+    );
+  };
 
   if (!league) {
     return (
@@ -80,7 +157,7 @@ const LeagueDetails = () => {
                 >
                   <HStack alignItems="center" space={3}>
                     <Avatar bg="gray.500" size="sm" />
-                    <Text>{member.username === 'Você' ? 'Você' : member.username}</Text>
+                    <Text>{member.username === userName ? 'Você' : member.username}</Text>
                   </HStack>
                   <Text>{member.score || 'N/A'} pts</Text>
                   <Text>{index + 1}º</Text>
@@ -91,13 +168,27 @@ const LeagueDetails = () => {
             )}
           </Box>
 
-          {/* Botão de sair da liga */}
+          {/* Botão de entrar ou sair da liga */}
           <Box alignItems="center" mt={4}>
-            <TouchableOpacity onPress={() => Alert.alert('Sair da liga', 'Você saiu da liga!')}>
-              <Button colorScheme="red" borderRadius={20} px={6}>
+            {isMember ? (
+              <Button 
+                colorScheme="red" 
+                borderRadius={20} 
+                px={6}
+                onPress={confirmLeaveLeague} // Botão para sair da liga
+              >
                 Sair da liga
               </Button>
-            </TouchableOpacity>
+            ) : (
+              <Button 
+                colorScheme="green" 
+                borderRadius={20} 
+                px={6}
+                onPress={joinLeague} // Botão para entrar na liga
+              >
+                Entrar na liga
+              </Button>
+            )}
           </Box>
         </VStack>
       </View>
