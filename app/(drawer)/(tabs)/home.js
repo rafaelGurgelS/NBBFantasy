@@ -123,16 +123,17 @@ export default function HomeScreen() {
           <Box mt={-13} ml={150}>
             <Text>Pontuação Total: </Text>
           </Box>
-          <Box flexDirection="row" justifyContent="flex-start" alignItems="center" ml={6} mt={2}>
+          <Box flexDirection="row" justifyContent="flex-start" alignItems="center" ml={7} mt={2}>
             <Box
-              backgroundColor="#32CD32"
+              backgroundColor="#32DD32"
               borderRadius={5}
               alignItems="center"
               justifyContent="center"
               width={20}
               height={8}
             >
-              <Text>{userInfo.money}</Text>
+              <Text color="white" fontWeight="bold">R${(userInfo.money ?? 0).toFixed(2)}</Text>
+
             </Box>
             <Box ml={65}
               backgroundColor="#D3D3D3"
