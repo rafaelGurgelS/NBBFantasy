@@ -248,7 +248,7 @@ def get_user_info():
         if user:
             # Obtém o nome do time de fantasia do usuário
             team_name = user.fantasy_team.team_name
-             ## tratar o caso em que nao tem nenhum   
+                
             # Busca os jogadores na lineup do time de fantasia na rodada atual
             lineup = session.query(db.Lineup).filter_by(team_name=team_name, round_id=current_round_id).all()
             
@@ -311,6 +311,11 @@ def get_jogadores():
 
     try:
         
+         # Certifique-se de que a sessão está aberta
+        if not session.is_active:
+            session.begin()
+
+
         jogadores = session.query(
             db.Player,
             db.PlayerScore
@@ -337,7 +342,36 @@ def get_jogadores():
         print(f"Erro ao consultar o banco de dados: {str(e)}")
         return jsonify({'error': 'Erro ao consultar o banco de dados'}), 500
     finally:
+        if session.is_active:
+            session.close()
+# Endpoint para obter a lista de partidas
+@app.route('/partidas', methods=['GET'])
+def get_partidas():
+    global current_round_id
+    try:
+
+        ###filtrar pelo numero da rodada atual
+        partidas = session.query(db.Match).filter(db.Match.round <= current_round_id).all()
+        partidas_list = [{
+            'id': partida.id,
+            'data': partida.date,
+            'time_casa': partida.house_team,
+            'time_visitante': partida.visit_team,
+            'placar_casa': partida.house_score,
+            'placar_visitante': partida.visit_score,
+            'rodada': partida.round
+        } for partida in partidas]
+       
+        return jsonify(partidas_list)
+    
+    except Exception as e:
+        print(f"Erro ao consultar o banco de dados: {str(e)}")
+        return jsonify({'error': 'Erro ao consultar o banco de dados'}), 500
+
+    finally:
         session.close()  # Fecha a sessão
+
+
 
 
 @app.route('/update_usuario', methods=['PUT'])
@@ -442,32 +476,6 @@ def delete_usuario():
 
 
 
-# Endpoint para obter a lista de partidas
-@app.route('/partidas', methods=['GET'])
-def get_partidas():
-    global current_round_id
-    try:
-
-        ###filtrar pelo numero da rodada atual
-        partidas = session.query(db.Match).filter(db.Match.round <= current_round_id).all()
-        partidas_list = [{
-            'id': partida.id,
-            'data': partida.date,
-            'time_casa': partida.house_team,
-            'time_visitante': partida.visit_team,
-            'placar_casa': partida.house_score,
-            'placar_visitante': partida.visit_score,
-            'rodada': partida.round
-        } for partida in partidas]
-       
-        return jsonify(partidas_list)
-    
-    except Exception as e:
-        print(f"Erro ao consultar o banco de dados: {str(e)}")
-        return jsonify({'error': 'Erro ao consultar o banco de dados'}), 500
-
-    finally:
-        session.close()  # Fecha a sessão
 
 
 #Verificar Usuário no login
@@ -612,6 +620,7 @@ def league_info():
             .group_by(db.User.username)  # Agrupar por username para evitar duplicatas
             .all()
         )
+
         
         # Construir a lista de membros com detalhes
         members = [
@@ -622,15 +631,22 @@ def league_info():
             for username, total_score in members_details
         ]
 
-        
+        # Ordenar a lista de membros pelo score em ordem decrescente
+        members_sorted = sorted(
+            members, 
+            key=lambda x: (x['score'] if isinstance(x['score'], (int, float)) else -1), 
+            reverse=True
+        )
+
         print("League Name:", league.name)
         print("League Description:", league.description)
-        print("League Members:", members)
+        print("League Members (Sorted):", members_sorted)
+        
 
         return jsonify({
             'name': league.name,
             'description': league.description,
-            'members': members
+            'members': members_sorted
         })
     except Exception as e:
         print("Exception:", e)
@@ -796,7 +812,7 @@ def update_all_scores(round_id, session):
 
 scheduler.add_job(
     func=update_round,
-    trigger=IntervalTrigger(seconds=120),
+    trigger=IntervalTrigger(seconds=300),
 
 )
 
