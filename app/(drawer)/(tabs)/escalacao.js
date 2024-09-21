@@ -272,7 +272,7 @@ const EscalacaoScreen = () => {
 
   function renderItem({ item }) {
     return (
-      <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
+      <HStack key={item.id} justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
         <VStack>
           <Text bold>{item.nome}</Text>
           <Text>Pontuação: {item.pontuacao.toFixed(2)}</Text>
@@ -281,7 +281,7 @@ const EscalacaoScreen = () => {
           <Text>Posição: {item.posicao}</Text>
         </VStack>
         {comprados[selectedPosition]?.id === item.id ? (
-          <HStack>
+          <HStack key={`comprado-${item.id}`}>
             <Text color="red.500">Comprado </Text>
             <Button colorScheme="red" borderRadius="20px" onPress={() => cancelPurchase(item)}>Cancelar</Button>
           </HStack>
@@ -290,13 +290,15 @@ const EscalacaoScreen = () => {
             bg="orange.400"
             onPress={() => buyPlayer(item)}
             borderRadius="20px"
+            key={`comprar-${item.id}`}
           >
-          Comprar
+            Comprar
           </Button>
         )}
       </HStack>
-    )
+    );
   }
+  
 
   const [listLoading, setListLoading] = useState(false);
   const [loading, setLoading] = useState(false);
