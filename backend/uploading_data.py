@@ -133,7 +133,6 @@ def generate_random_variation(stat_value, variation_range=10):
 
 
 
-
 def importar_players_actions(df_stat,rodadas):
     
     for id in rodadas:
@@ -226,9 +225,16 @@ def importar_players_scores(rodadas):
         finally:
             session.close()
 
-    
-
-
+def criar_liga():
+    try:
+        league = db.League(name="Ranking Geral", description="Liga com todos os usuários do NBB Fantasy")
+        session.add(league)
+        session.commit()
+        print('Liga criada com sucesso.')
+    except Exception as e:
+        session.rollback()
+        print(f'Erro ao criar liga: {str(e)}')
+        
 
 if __name__ == '__main__':
     # Ler o CSV
@@ -272,6 +278,7 @@ if __name__ == '__main__':
     importar_players_actions(df_stat,rodadas)
     importar_players_scores(rodadas)
 
+    criar_liga()
 
 
     # Mapeamento das estatísticas

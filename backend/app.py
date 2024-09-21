@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from flask import Flask, jsonify,request
 from datetime import datetime
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 import create_tables_2 as db
 from sqlalchemy.engine import URL
@@ -10,6 +10,7 @@ from flask_socketio import SocketIO, emit
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import time
+
 
 # Configuração da URL do banco de dados
 url = URL.create(
@@ -70,6 +71,8 @@ def update_round():
             current_round_id = first_round.id
 
     print(f"Rodada atual: {current_round_id}")
+
+    update_all_scores(round_id=current_round_id-1, session=session)
     
     socketio.emit('update', {'current_round_id': current_round_id})
 
@@ -182,7 +185,14 @@ def insert_usuario():
     try:
         session.add(novo_usuario)
         session.commit()
+
+        membership = db.LeagueMembership(league_id="1", user_id=username)
+        session.add(membership)
+        session.commit()
+
         return jsonify({'message': 'Usuário criado com sucesso!'}), 201
+    
+
     
     except Exception as e:
         session.rollback()
@@ -593,9 +603,13 @@ def league_info():
         
         # Buscar detalhes dos usuários e seus scores
         members_details = (
-            session.query(db.User.username, db.UserHasScore.score)
+            session.query(
+                db.User.username,
+                func.coalesce(db.func.sum(db.UserHasScore.score), 0).label('total_score')  # Usando SUM para calcular a pontuação total
+            )
             .outerjoin(db.UserHasScore, db.User.username == db.UserHasScore.user_id)
             .filter(db.User.username.in_(usernames))
+            .group_by(db.User.username)  # Agrupar por username para evitar duplicatas
             .all()
         )
         
@@ -603,10 +617,11 @@ def league_info():
         members = [
             {
                 'username': username,
-                'score': score if score is not None else 'N/A'  # Use 'N/A' se o score não estiver disponível
+                'score': total_score if total_score > 0 else 'N/A'  # Use 'N/A' se o score não estiver disponível
             }
-            for username, score in members_details
+            for username, total_score in members_details
         ]
+
         
         print("League Name:", league.name)
         print("League Description:", league.description)
@@ -638,6 +653,60 @@ def search_leagues():
     except Exception as e:
         print("Exception:", e)
         return jsonify({'error': str(e)}), 500
+    
+
+
+# Função para calcular a pontuação total de um time fantasia para uma rodada específica
+def calculate_team_score(team_name, round_id, session):
+    # Busca todos os jogadores na lineup do time fantasia para a rodada especificada
+    lineup = session.query(db.Lineup).filter_by(team_name=team_name, round_id=round_id).all()
+    
+    total_score = 0
+
+    # Para cada jogador na lineup, recupera a pontuação deles na tabela PlayerScores
+    for item in lineup:
+        player_score = session.query(db.PlayerScore).filter_by(id_player=item.player_id, id_round=round_id).first()
+        if player_score:
+            total_score += player_score.score  # Adiciona a pontuação do jogador ao total
+
+    return total_score
+
+
+
+# Função para atualizar ou inserir a pontuação do usuário na tabela UserHasScore
+def update_user_score(user_id, round_id, session):
+    # Busca o time fantasia do usuário
+    fantasy_team = session.query(db.FantasyTeam).filter_by(username=user_id).first()
+
+    if not fantasy_team:
+        print(f"Usuário {user_id} não possui um time fantasia.")
+        return
+
+    # Calcula a pontuação total do time fantasia do usuário para esta rodada
+    total_score = calculate_team_score(fantasy_team.team_name, round_id, session)
+
+    # Verifica se já existe um registro para esta rodada
+    user_score = session.query(db.UserHasScore).filter_by(user_id=user_id, round_id=round_id).first()
+
+    if user_score:
+        # Se já existir, atualiza a pontuação
+        user_score.score = total_score
+    else:
+        # Se não existir, cria um novo registro
+        new_score = db.UserHasScore(user_id=user_id, round_id=round_id, score=total_score)
+        session.add(new_score)
+
+    # Confirma as mudanças no banco de dados
+    session.commit()
+
+# Função para atualizar as pontuações de todos os usuários para uma rodada específica
+def update_all_scores(round_id, session):
+    users = session.query(db.User).all()
+
+    # Para cada usuário, atualiza sua pontuação para a rodada especificada
+    for user in users:
+        update_user_score(user.username, round_id, session)
+
 
 
 

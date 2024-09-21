@@ -1,7 +1,9 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, ForeignKey, func
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship, backref
 from datetime import datetime
+
+
 
 # Configuração da URL do banco de dados
 url = URL.create(
@@ -30,6 +32,7 @@ class User(Base):
 
     scores = relationship("UserHasScore")
     fantasy_team = relationship('FantasyTeam', backref='user', cascade='all, delete-orphan', uselist=False)
+    leagues = relationship("LeagueMembership", backref="user", cascade="all, delete-orphan")
     
 
 class FantasyTeam(Base):
@@ -148,8 +151,7 @@ class LeagueMembership(Base):
     league_id = Column(Integer, ForeignKey('Leagues.id'), primary_key=True, nullable=False)
     user_id = Column(String(50), ForeignKey('Users.username', ondelete='CASCADE'), primary_key=True, nullable=False)
 
-    # Relacionamento com a tabela Users
-    user = relationship("User", backref="leagues")
+    
 
 
 
