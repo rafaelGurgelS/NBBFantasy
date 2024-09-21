@@ -30,7 +30,7 @@ class User(Base):
     password = Column(String(100), nullable=False)
     money = Column(Float, nullable=False)  
 
-    scores = relationship("UserHasScore")
+    scores = relationship("UserHasScore", backref="user", cascade="all, delete-orphan")
     fantasy_team = relationship('FantasyTeam', backref='user', cascade='all, delete-orphan', uselist=False)
     leagues = relationship("LeagueMembership", backref="user", cascade="all, delete-orphan")
     
@@ -118,7 +118,7 @@ class UserHasScore(Base):
     __tablename__ = 'UsersScores'
 
 
-    user_id = Column(String(50),ForeignKey('Users.username'),primary_key=True, nullable=False)
+    user_id = Column(String(50), ForeignKey('Users.username', ondelete='CASCADE'), primary_key=True, nullable=False)
     round_id = Column(Integer,ForeignKey('Rounds.id'),primary_key=True, nullable=False)
     score = Column(Float, nullable=False)
 
