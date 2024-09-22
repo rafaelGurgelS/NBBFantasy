@@ -14,6 +14,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import GlobalContext from '../globalcontext';
 import { useNavigation } from '@react-navigation/native';
+import * as Font from 'expo-font';
+import { useFonts } from 'expo-font'; // Import para carregar a fonte
+import AppLoading from 'expo-app-loading'; // Para tela de carregamento enquanto a fonte é carregada
 
 export default function Conta() {
   const router = useRouter(); 
@@ -24,6 +27,13 @@ export default function Conta() {
   const [isEditingSenha, setIsEditingSenha] = useState(false);
   const [newSenha, setNewSenha] = useState(senha);
   const [showModal, setShowModal] = useState(false); 
+
+  const [fontsLoaded] = useFonts({
+    //   ../../../assets/images/quadra_nova.jpg
+    //  C:\Users\clien\Documents\comp_movel_projetos\NBBFantasy\assets\fonts\Lacquer-Regular.ttf
+    'Lacquer-Regular': require('../../assets/fonts/Lacquer-Regular.ttf'),
+  });
+
 
   const updateUsuario = async (updatedSenha) => {
     console.log('Enviando dados para o backend:', {
@@ -161,18 +171,18 @@ export default function Conta() {
             <Icon as={MaterialIcons} name="arrow-back" size={10} color="#FFFFFF" />
           </TouchableOpacity>
 
-          <Heading size="lg" color="#FFFFFF" mb={4}>
+          <Heading size="lg" color="#FFFFFF" mb={4}  style={{ fontFamily: 'Lacquer-Regular' }}>
             SUA CONTA NBB FANTASY!
           </Heading>
 
           <View style={styles.textContainer}>
-            <Text fontSize={25} color="#FFFFFF" textAlign="left">
+            <Text fontSize={25} color="#FFFFFF" textAlign="left" style={{ fontFamily: 'Lacquer-Regular' }}>
               Nome de usuário: {userName}
             </Text>
           </View>
 
           <View style={styles.textContainer}>
-            <Text fontSize={25} color="#FFFFFF" textAlign="left">
+            <Text fontSize={25} color="#FFFFFF" textAlign="left" style={{ fontFamily: 'Lacquer-Regular' }}>
               Senha:
             </Text>
           </View>
