@@ -21,17 +21,17 @@ const EscalacaoScreen = () => {
   const [error, setError] = useState(null);
 
   const [comprados, setComprados] = useState({
-    'Ala armador': null,
+    'Ala/Armador': null,
     'Armador': null,
     'Pivô': null,
-    'Ala pivô': null,
+    'Ala/Pivô': null,
     'Ala': null
   });
   const [disponiveis, setDisponiveis] = useState({
-    'Ala armador': [],
+    'Ala/Armador': [],
     'Armador': [],
     'Pivô': [],
-    'Ala pivô': [],
+    'Ala/Pivô': [],
     'Ala': [],
   });
 
@@ -58,7 +58,6 @@ const EscalacaoScreen = () => {
       fetchUserInfo();
     }
   }, [userName]);
-
 
 
   const fetchUserInfo = async () => {
@@ -110,10 +109,10 @@ const EscalacaoScreen = () => {
       const response = await fetch(`http://${ip}:${porta}/jogadores`);
       const data = await response.json();
       setDisponiveis({
-        'Ala armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
+        'Ala/Armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
         'Armador': data.filter(jogador => jogador.posicao === 'Armador'),
         'Pivô': data.filter(jogador => jogador.posicao === 'Pivô'),
-        'Ala pivô': data.filter(jogador => jogador.posicao === 'Ala/Pivô'),
+        'Ala/Pivô': data.filter(jogador => jogador.posicao === 'Ala/Pivô'),
         'Ala': data.filter(jogador => jogador.posicao === 'Ala'),
       });
     } catch (error) {
@@ -351,12 +350,12 @@ const EscalacaoScreen = () => {
                   height={16}
                   borderColor="orange.400"
                   borderWidth={2}
-                  icon={renderButtonIcon('Ala armador')}
-                  onPress={() => selectPosition('Ala armador')}
+                  icon={renderButtonIcon('Ala/Armador')}
+                  onPress={() => selectPosition('Ala/Armador')}
                   mb={2}
                 />
-                {comprados['Ala armador'] && <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
-                  {comprados['Ala armador'].nome}</Text>}
+                {comprados['Ala/Armador'] && <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
+                  {comprados['Ala/Armador'].nome}</Text>}
               </VStack>
               <VStack alignItems="center">
                 <IconButton
@@ -406,12 +405,12 @@ const EscalacaoScreen = () => {
                   height={16}
                   borderColor="orange.400"
                   borderWidth={2}
-                  icon={renderButtonIcon('Ala pivô')}
-                  onPress={() => selectPosition('Ala pivô')}
+                  icon={renderButtonIcon('Ala/Pivô')}
+                  onPress={() => selectPosition('Ala/Pivô')}
                   mb={2}
                 />
-                {comprados['Ala pivô'] && <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
-                  {comprados['Ala pivô'].nome}</Text>}
+                {comprados['Ala/Pivô'] && <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
+                  {comprados['Ala/Pivô'].nome}</Text>}
               </VStack>
               <VStack alignItems="center">
                 <IconButton

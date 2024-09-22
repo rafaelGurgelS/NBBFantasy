@@ -73,6 +73,8 @@ def update_round():
     print(f"Rodada atual: {current_round_id}")
 
     update_all_scores(round_id=current_round_id-1, session=session)
+
+    update_all_lineups(previous_round_id = current_round_id-1, current_round_id=current_round_id, session=session)
     
     socketio.emit('update', {'current_round_id': current_round_id})
 
@@ -754,8 +756,6 @@ def join_league():
 
 # -------------------------------------------------------------------- #
 
-
-
 # Função para calcular a pontuação total de um time fantasia para uma rodada específica
 def calculate_team_score(team_name, round_id, session):
     # Busca todos os jogadores na lineup do time fantasia para a rodada especificada
@@ -808,11 +808,31 @@ def update_all_scores(round_id, session):
         update_user_score(user.username, round_id, session)
 
 
+# Função para copiar as escalações de todos os usuários para a nova rodada
+def update_all_lineups(previous_round_id, current_round_id, session):
+    # Busca todas as escalações da rodada anterior
+    lineups = session.query(db.Lineup).filter_by(round_id=previous_round_id).all()
+
+    # Para cada escalação da rodada anterior, cria uma nova entrada para a rodada atual
+    for lineup in lineups:
+        new_lineup = db.Lineup(
+            team_name=lineup.team_name,
+            player_id=lineup.player_id,
+            round_id=current_round_id
+        )
+        session.add(new_lineup)
+
+    # Confirma as mudanças no banco de dados
+    session.commit()
+
+    print(f"Escalações da rodada {previous_round_id} copiadas para a rodada {current_round_id}")
+
+
 
 
 scheduler.add_job(
     func=update_round,
-    trigger=IntervalTrigger(seconds=300),
+    trigger=IntervalTrigger(seconds=120),
 
 )
 
