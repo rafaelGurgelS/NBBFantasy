@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native'; 
 import {
   NativeBaseProvider,
@@ -11,6 +11,8 @@ import {
   Spinner
 } from "native-base";
 import GlobalContext from '../../globalcontext';
+import { useRouter } from 'expo-router';
+import { FontAwesome } from '@expo/vector-icons';
 
 const backgroundImage = require("../../../assets/images/nbb-brasil.png");
 
@@ -28,11 +30,13 @@ const emblemData = [
 ];
 
 export default function HomeScreen() {
-  const { userName, ip, porta } = useContext(GlobalContext);
+  const { userName, ip, porta, lineupComplete } = useContext(GlobalContext);
   
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const router = useRouter();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -60,7 +64,7 @@ export default function HomeScreen() {
         setError('Parâmetros de configuração ausentes.');
         setLoading(false);
       }
-    }, [userName, ip, porta]) // Dependências para atualizar o fetch
+    }, [userName, ip, porta, lineupComplete]) // Dependências para atualizar o fetch
   );
 
   if (loading) {
@@ -106,7 +110,6 @@ export default function HomeScreen() {
           height="50%"
         >
           <Box flexDirection="row" alignItems="center" ml={5} mt={5}>
-            {/* Renderizar a imagem do emblema sem o quadrado cinza */}
             {emblem && (
               <Image
                 source={emblem.image}
@@ -133,7 +136,6 @@ export default function HomeScreen() {
               height={8}
             >
               <Text color="white" fontWeight="bold">R${(userInfo.money ?? 0).toFixed(2)}</Text>
-
             </Box>
             <Box ml={65}
               backgroundColor="#D3D3D3"
@@ -143,23 +145,22 @@ export default function HomeScreen() {
               width={20}
               height={8}
             >
-              <Text>{userInfo.pontuacao}</Text>
+              <Text>{(userInfo.total_score ?? 0).toFixed(2)}</Text>
             </Box>
           </Box>
           <Divider borderWidth={1} borderColor="#A9A9A9" my={8} />
-          <Box flexDirection="row" alignItems="center" ml={5}>
-            <Box
-              backgroundColor="#D3D3D3"
-              borderRadius="full"
-              width={75}
-              height={75}
-            />
-            <Text ml={10} mt={-10}>Status da Escalação</Text>
+          <Box flexDirection="row" alignItems="center" ml={5} mb={2}>
+            <FontAwesome name={lineupComplete ? "check-circle" : "times-circle"} size={60} color={lineupComplete ? "green" : "red"} />
+            <Text ml={10}>
+              Status da Escalação
+            </Text>
           </Box>
-          <Box alignItems="center" mt={-10} ml={20}>
+          <Box alignItems="center" mt={-3} ml={10}>
             <Button
-              backgroundColor="#D3D3D3"
+              backgroundColor="#32DD32"
               borderRadius="full"
+              onPress={() => router.push('/escalacao')}
+              width="50%" // Centralizando o botão
             >
               Revisar
             </Button>

@@ -12,7 +12,7 @@ Além disso, tava olhando o figma... tem muita tela pra fazer ainda */
 
 
 const EscalacaoScreen = () => {
-  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
+  const { userName, setuserName, ip, setIP, porta, setPorta, lineupComplete, setLineupComplete } = useContext(GlobalContext);
   const [rodadaAtual, setRodadaAtual] = useState(null);
   const [userMoney, setUserMoney] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclose();
@@ -58,6 +58,7 @@ const EscalacaoScreen = () => {
       fetchUserInfo();
     }
   }, [userName]);
+
 
 
   const fetchUserInfo = async () => {
@@ -269,12 +270,17 @@ const EscalacaoScreen = () => {
 
   const isComplete = Object.values(comprados).every(jogador => jogador !== null);
 
+
+  useEffect(() => {
+    setLineupComplete(isComplete);
+    console.log("Alterando status da escalação")
+  }, [isComplete]);
+
   function renderItem({ item }) {
     return (
       <HStack key={item.id} justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
         <VStack>
           <Text bold>{item.nome}</Text>
-          <Text>Pontuação: {item.pontuacao.toFixed(2)}</Text>
           <Text>Valor: R${item.valor}</Text>
           <Text>Time: {item.time}</Text>
           <Text>Posição: {item.posicao}</Text>

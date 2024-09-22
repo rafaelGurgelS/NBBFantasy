@@ -250,15 +250,12 @@ def get_user_info():
         if user:
             # Obtém o nome do time de fantasia do usuário
             team_name = user.fantasy_team.team_name
-                
+
             # Busca os jogadores na lineup do time de fantasia na rodada atual
             lineup = session.query(db.Lineup).filter_by(team_name=team_name, round_id=current_round_id).all()
             
             # Obter todos os player_ids da lineup
             player_ids = [lineup_item.player_id for lineup_item in lineup]
-
-            # Consultar os detalhes dos jogadores
-            #players = session.query(db.Player).filter(db.Player.id.in_(player_ids)).all()
 
             jogadores = session.query(
                 db.Player,
@@ -269,28 +266,34 @@ def get_user_info():
                 db.PlayerScore.id_round == current_round_id,
                 db.Player.id.in_(player_ids)
             ).all()
-            
-           
 
             # Criar uma lista com as informações dos jogadores
             jogadores_list = []
+
             for jogador, score in jogadores:
-                print(jogador.name)
                 jogadores_list.append({
                     'id': jogador.id,
                     'nome': jogador.name,
-                    'valor': score.value,   ##valor da tabela PlayerScore
+                    'valor': score.value,   # valor da tabela PlayerScore
                     'time': jogador.real_team,
                     'posicao': jogador.position,
                     'pontuacao': score.score  # Pontuação da tabela PlayerScore
                 })
+
+            # Calcular a pontuação total do jogador
+            player_score = (
+                session.query(func.coalesce(db.func.sum(db.UserHasScore.score), 0))
+                .filter_by(user_id=username)  # Supondo que user.id é o ID do usuário
+                .scalar()
+            )
 
             # Criar a resposta JSON com as informações do usuário, time e lineup
             user_info = {
                 'money': user.money,
                 'fantasy_team': team_name,
                 'emblema': user.fantasy_team.emblem,
-                'players': jogadores_list  # Adiciona as informações dos jogadores da lineup
+                'players': jogadores_list,  # Adiciona as informações dos jogadores da lineup
+                'total_score': player_score  # Adiciona a pontuação total do usuário
             }
 
             return jsonify(user_info), 200
@@ -303,6 +306,7 @@ def get_user_info():
 
     finally:
         session.close()  # Fecha a sessão
+
 
 
 
