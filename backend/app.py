@@ -314,7 +314,8 @@ def get_user_info():
 @app.route('/jogadores', methods=['GET'])
 def get_jogadores():
     global current_round_id
-
+    session=Session()
+    #tentar criar uma nova session aqui?localmente
     try:
         
          # Certifique-se de que a sessão está aberta
@@ -350,11 +351,16 @@ def get_jogadores():
     finally:
         if session.is_active:
             session.close()
+
+
 # Endpoint para obter a lista de partidas
 @app.route('/partidas', methods=['GET'])
 def get_partidas():
     global current_round_id
+    session=Session()
     try:
+        if not session.is_active:
+            session.begin()
 
         ###filtrar pelo numero da rodada atual
         partidas = session.query(db.Match).filter(db.Match.round < current_round_id).all()
@@ -593,6 +599,7 @@ def get_leagues():
 
 @app.route('/leagueInfo', methods=['GET'])
 def league_info():
+    
     try:
         league_id = request.args.get('league_id', type=int)
         print("Received league_id:", league_id)
@@ -627,7 +634,6 @@ def league_info():
             .all()
         )
 
-        
         # Construir a lista de membros com detalhes
         members = [
             {
@@ -647,17 +653,21 @@ def league_info():
         print("League Name:", league.name)
         print("League Description:", league.description)
         print("League Members (Sorted):", members_sorted)
-        
 
         return jsonify({
             'name': league.name,
             'description': league.description,
             'members': members_sorted
         })
+    
     except Exception as e:
         print("Exception:", e)
         return jsonify({'error': str(e)}), 500
+    
+    finally:
+        session.close()  # Fecha a sessão independentemente de sucesso ou erro
 
+   
 
 
 @app.route('/search_leagues', methods=['GET'])
@@ -675,7 +685,8 @@ def search_leagues():
     except Exception as e:
         print("Exception:", e)
         return jsonify({'error': str(e)}), 500
-    
+    finally:
+        session.close()
 
 @app.route('/leaveLeague', methods=['POST'])
 def leave_league():
@@ -805,38 +816,56 @@ def update_user_score(user_id, round_id, session):
 
 # Função para atualizar as pontuações de todos os usuários para uma rodada específica
 def update_all_scores(round_id, session):
-    users = session.query(db.User).all()
+    try:
+        users = session.query(db.User).all()
 
-    # Para cada usuário, atualiza sua pontuação para a rodada especificada
-    for user in users:
-        update_user_score(user.username, round_id, session)
+        # Para cada usuário, atualiza sua pontuação para a rodada especificada
+        for user in users:
+            update_user_score(user.username, round_id, session)
 
+    except Exception as e:
+        session.rollback()  # Desfaz alterações em caso de erro
+        print(f"Erro ao atualizar as pontuações: {str(e)}")
+    
+    finally:
+        session.close() 
 
 # Função para copiar as escalações de todos os usuários para a nova rodada
-def update_all_lineups(previous_round_id, current_round_id, session):
-    # Busca todas as escalações da rodada anterior
-    lineups = session.query(db.Lineup).filter_by(round_id=previous_round_id).all()
+def update_all_lineups(previous_round_id, current_round_id,session):
+    try:
+        # Certifique-se de que a sessão está ativa
+        if not session.is_active:
+            session.begin()
 
-    # Para cada escalação da rodada anterior, cria uma nova entrada para a rodada atual
-    for lineup in lineups:
-        new_lineup = db.Lineup(
-            team_name=lineup.team_name,
-            player_id=lineup.player_id,
-            round_id=current_round_id
-        )
-        session.add(new_lineup)
+        # Busca todas as escalações da rodada anterior
+        lineups = session.query(db.Lineup).filter_by(round_id=previous_round_id).all()
 
-    # Confirma as mudanças no banco de dados
-    session.commit()
+        # Para cada escalação da rodada anterior, cria uma nova entrada para a rodada atual
+        for lineup in lineups:
+            new_lineup = db.Lineup(
+                team_name=lineup.team_name,
+                player_id=lineup.player_id,
+                round_id=current_round_id
+            )
+            session.add(new_lineup)
 
-    print(f"Escalações da rodada {previous_round_id} copiadas para a rodada {current_round_id}")
+        # Confirma as mudanças no banco de dados
+        session.commit()
 
+        print(f"Escalações da rodada {previous_round_id} copiadas para a rodada {current_round_id}")
+
+    except Exception as e:
+        session.rollback()  # Reverte as mudanças em caso de erro
+        print(f"Erro ao copiar escalações: {str(e)}")
+    finally:
+        if session.is_active:
+            session.close()  # Fecha a sessão
 
 
 
 scheduler.add_job(
     func=update_round,
-    trigger=IntervalTrigger(seconds=120),
+    trigger=IntervalTrigger(seconds=60),
 
 )
 

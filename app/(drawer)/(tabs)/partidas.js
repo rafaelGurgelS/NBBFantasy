@@ -122,12 +122,16 @@ const PartidasScreen = () => {
 
   return (
     <VStack flex={1} justifyContent="center" alignItems="center" space={4} px={4}>
+      
+      {
+      /*
       <Box width="100%" bg="#E78E8E" p={4} rounded="md" alignItems="center" mt={4}>
         <HStack alignItems="center" space={2}>
           <Icon as={MaterialIcons} name="access-time" color="white" size="sm" />
           <Text color="white" fontSize="md">Tempo para próxima rodada: 00:00:00</Text>
         </HStack>
-      </Box>
+      </Box>*/
+      }
       {rodadaAtual !== null && (
         <>
           <HStack space={4} alignItems="center" mt={4}>
