@@ -16,7 +16,6 @@ import { useRouter, Link } from "expo-router";
 import GlobalContext from './globalcontext.js'; 
 import { useFonts } from 'expo-font';
 import * as Font from "expo-font";
-import AppLoading from "expo-app-loading";
 
 export default function Home() {
   const router = useRouter();
@@ -32,7 +31,7 @@ export default function Home() {
 
 
   if (!fontsLoaded) {
-    return <AppLoading />;
+    return ;
   }
   
   const handleLogin = async () => {
