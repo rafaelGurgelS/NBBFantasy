@@ -278,7 +278,7 @@ def get_user_info():
                     'time': jogador.real_team,
                     'posicao': jogador.position,
                     'pontuacao': score.score  # Pontuação da tabela PlayerScore
-                })
+                })   ##talvez adicionar o atributo booleano aqui...
 
             # Calcular a pontuação total do jogador
             player_score = (

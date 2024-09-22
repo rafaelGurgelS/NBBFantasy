@@ -5,11 +5,6 @@ import { ActivityIndicator } from 'react-native-paper';
 import GlobalContext from '../../globalcontext';
 import io from 'socket.io-client';
 
-/*Errinho de lógica da rodada - tô passando a pontuação do jogador na fase de compra... isso nao era pra ser exibido nesse momento...
-é bom a gente tirar a pontuação e tem q criar 2 estados nessa tela - mercado abero e mercado fechado/ resultado da rodada.
-(então s.. td essa junção que eu fiz foi meio inútil, se bem q ja tendo essa info no item.pontuacao facilita pra exibir depois)
-Além disso, tava olhando o figma... tem muita tela pra fazer ainda */ 
-
 
 const EscalacaoScreen = () => {
   const { userName, setuserName, ip, setIP, porta, setPorta, lineupComplete, setLineupComplete } = useContext(GlobalContext);
@@ -457,6 +452,8 @@ const EscalacaoScreen = () => {
                 ListFooterComponent={!loading ? <ActivityIndicator size="large" color="#FC9904" /> : null}
                 onEndReached={handleEndReached}
                 onEndReachedThreshold={0.1}s
+                initialNumToRender={10}
+                windowSize={5}
               />
             )}
           </Actionsheet.Content>
