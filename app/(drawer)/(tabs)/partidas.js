@@ -24,7 +24,7 @@ const PartidasScreen = () => {
       fetchPartidas().then(() => {
         // Após fetchPartidas, garantir que rodadaAtual seja atualizado com base no valor recebido
         if (data.current_round_id && rodadaAtual !== data.current_round_id) {
-          setRodadaAtual(data.current_round_id);
+          setRodadaAtual(data.current_round_id-1);
         }
       });
     });
@@ -35,7 +35,7 @@ const PartidasScreen = () => {
       fetchPartidas().then(() => {
         // Após fetchPartidas, garantir que rodadaAtual seja atualizado com base no valor recebido
         if (data.current_round_id && rodadaAtual !== data.current_round_id) {
-          setRodadaAtual(data.current_round_id);
+          setRodadaAtual(data.current_round_id-1);
         }
       });
     });
@@ -174,7 +174,7 @@ const PartidasScreen = () => {
             </ScrollView>
           </Box>
           <Center mb={4}>
-            <Button onPress={handleRodadaHoje} bg="orange.400" _text={{ color: 'white' }} borderRadius="20px">Rodada Atual</Button>
+            <Button onPress={handleRodadaHoje} bg="orange.400" _text={{ color: 'white' }} borderRadius="20px">Última rodada</Button>
           </Center>
         </>
       )}

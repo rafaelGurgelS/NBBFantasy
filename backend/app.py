@@ -357,7 +357,7 @@ def get_partidas():
     try:
 
         ###filtrar pelo numero da rodada atual
-        partidas = session.query(db.Match).filter(db.Match.round <= current_round_id).all()
+        partidas = session.query(db.Match).filter(db.Match.round < current_round_id).all()
         partidas_list = [{
             'id': partida.id,
             'data': partida.date,
