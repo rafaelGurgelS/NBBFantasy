@@ -129,8 +129,8 @@ def importar_partidas():
 
 
 def generate_random_variation(stat_value, variation_range=10):
-        return max(0, int(stat_value + np.random.uniform(-variation_range, variation_range)))
-
+    random_variation = stat_value + np.random.uniform(-variation_range, variation_range)
+    return abs(random_variation)
 
 
 def importar_players_actions(df_stat,rodadas):

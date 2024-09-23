@@ -1,5 +1,5 @@
 import React, { useState, useEffect,useContext } from 'react';
-import { IconButton, FlatList, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image, Flex } from 'native-base';
+import { IconButton,ScrollView,View, FlatList, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image, Flex } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native-paper';
 import GlobalContext from '../../globalcontext';
@@ -231,6 +231,10 @@ const EscalacaoScreen = () => {
     } else {
       alert('Dinheiro insuficiente para comprar este jogador.');
     }
+
+    console.log('Data for selected position:', comprados[selectedPosition]);
+
+
   };
 
   const cancelPurchase = async (jogador) => {
@@ -271,6 +275,15 @@ const EscalacaoScreen = () => {
     console.log("Alterando status da escalação")
   }, [isComplete]);
 
+
+  useEffect(() => {
+  if (selectedPosition) {
+    console.log('Selected Position:', selectedPosition);
+    console.log('Data for selected position:', comprados[selectedPosition]);
+  }
+  }, [selectedPosition, comprados]);
+
+
   function renderItem({ item }) {
     return (
       <HStack key={item.id} justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
@@ -309,6 +322,20 @@ const EscalacaoScreen = () => {
       setLoading(false);
     }, 1000);
   };
+
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  // Função para calcular o subset da lista baseado na página atual
+  const paginatedData = selectedPosition
+    ? disponiveis[selectedPosition].slice(0, page * pageSize)
+    : [];
+
+  // Verificar se existem mais jogadores para carregar
+  const hasMorePlayers = selectedPosition 
+    ? disponiveis[selectedPosition].length > paginatedData.length
+    : false;
+
 
   return (
     <NativeBaseProvider>
@@ -433,6 +460,8 @@ const EscalacaoScreen = () => {
           </VStack>
         </Box>
 
+        
+
         <Actionsheet isOpen={isOpen} onClose={onClose}>
           <Actionsheet.Content>
             <IconButton
@@ -442,18 +471,28 @@ const EscalacaoScreen = () => {
               onPress={onClose}
             />
             <Text fontSize="xl" mb={4}>Posição: {selectedPosition}</Text>
+
             {listLoading ? (
               <ActivityIndicator size="large" color="#FC9904" />
             ) : (
               <FlatList
-                data={selectedPosition ? disponiveis[selectedPosition] : []}
-                keyExtractor={(item, index) => item.id.toString()}
+                data={paginatedData}
+                keyExtractor={(item) => item.id.toString()}
                 renderItem={renderItem}
-                ListFooterComponent={!loading ? <ActivityIndicator size="large" color="#FC9904" /> : null}
-                onEndReached={handleEndReached}
-                onEndReachedThreshold={0.1}s
-                initialNumToRender={10}
-                windowSize={5}
+                ListFooterComponent={
+                  !loading && hasMorePlayers ? (
+                    <Button 
+                      onPress={() => setPage((prevPage) => prevPage + 1)} 
+                      variant="outline"
+                      colorScheme="orange"
+                    >
+                      Carregar Mais
+                    </Button>
+                  ) : null
+                }
+                onEndReachedThreshold={0.1}
+                //initialNumToRender={10}
+                //windowSize={5}
               />
             )}
           </Actionsheet.Content>

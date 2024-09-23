@@ -156,8 +156,9 @@ const LeagueDetails = () => {
                   py={2}
                 >
                   <HStack alignItems="center" space={3}>
-                    <Avatar bg="gray.500" size="sm" />
-                    <Text>{member.username === userName ? 'Você' : member.username}</Text>
+                    <Text>
+                      {member.username === userName ? 'Você' : member.username}
+                    </Text>
                   </HStack>
                   <Text>{member.score || 'N/A'} pts</Text>
                   <Text>{index + 1}º</Text>

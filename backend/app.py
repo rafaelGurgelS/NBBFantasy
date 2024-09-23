@@ -31,7 +31,7 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 scheduler = BackgroundScheduler()
 
-current_round_id = 0
+current_round_id = 1
 waiting_for_next_round = False
 
 ## fazer 2 cron_job: um pra atualizar a rodada e outro pra mandar a rodada atual. esse de mandar a rodada atual roda com mais frequência.
@@ -363,7 +363,7 @@ def get_partidas():
             session.begin()
 
         ###filtrar pelo numero da rodada atual
-        partidas = session.query(db.Match).filter(db.Match.round < current_round_id).all()
+        partidas = session.query(db.Match).filter(db.Match.round <= current_round_id).all()
         partidas_list = [{
             'id': partida.id,
             'data': partida.date,
