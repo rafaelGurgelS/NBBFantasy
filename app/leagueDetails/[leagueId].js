@@ -143,6 +143,33 @@ const LeagueDetails = () => {
             mt={4} // Margem superior para espaçar do cabeçalho
           />
 
+          {/* Descrição da liga estilizada */}
+          {league.description ? (
+            <Box
+              bg="coolGray.100"
+              p={4}
+              mt={4}
+              borderRadius="lg"
+              shadow={2}
+            >
+              <Text fontSize="md" color="gray.800" italic>
+                {league.description}
+              </Text>
+            </Box>
+          ) : (
+            <Box
+              bg="coolGray.100"
+              p={4}
+              mt={4}
+              borderRadius="lg"
+              shadow={2}
+            >
+              <Text fontSize="md" color="gray.800" italic>
+                Nenhuma descrição disponível.
+              </Text>
+            </Box>
+          )}y
+
           {/* Lista de membros em estilo tabela */}
           <Box bg="coolGray.100" p={5} rounded="md" shadow={2}>
             {league.members && league.members.length > 0 ? (
@@ -160,7 +187,7 @@ const LeagueDetails = () => {
                       {member.username === userName ? 'Você' : member.username}
                     </Text>
                   </HStack>
-                  <Text>{member.score || 'N/A'} pts</Text>
+                  <Text>{isNaN(Number(member?.score)) ? '0.00' : Number(member.score).toFixed(2)} pts</Text>
                   <Text>{index + 1}º</Text>
                 </HStack>
               ))

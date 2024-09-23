@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { FlatList, TouchableOpacity, Alert } from 'react-native';
 import { NativeBaseProvider, Box, HStack, Text, Icon, VStack, Button, Modal, Input, Spacer } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
-import GlobalContext from '../../../globalcontext.js';
+import GlobalContext from '../../globalcontext.js';
 import { useRouter } from 'expo-router';
 
 const Leagues = () => {
@@ -86,7 +86,7 @@ const createLeague = async () => {
 
 
   const handlePress = (league) => {
-    router.push(`../../../leagueDetails/${league.id}`);
+    router.push(`../../leagueDetails/${league.id}`);
   };
 
   return (
@@ -98,8 +98,13 @@ const createLeague = async () => {
             value={searchQuery}
             onChangeText={(text) => setSearchQuery(text)}
             flex={1}
+            borderColor="#FC9904"
+            _focus={{
+              borderColor: '#FC9904', // Cor da borda ao focar
+            }}
+            color="#FC9904"
           />
-          <Button onPress={() => setSearchModalVisible(true)}>
+          <Button onPress={() => setSearchModalVisible(true)} bg="#FC9904" _pressed={{ bg: '#E68A00' }}>
             <Icon as={FontAwesome} name="search" size={5} color="white" />
           </Button>
         </HStack>
@@ -129,11 +134,13 @@ const createLeague = async () => {
         />
 
         <Button
-          colorScheme="green"
-          borderRadius="full"
-          startIcon={<Icon as={FontAwesome} name="plus" />}
-          onPress={() => setIsModalVisible(true)}
-          mb={4}
+          bg="#FC9904" // Cor de fundo personalizada
+          borderRadius="full" // Raio da borda
+          startIcon={<Icon as={FontAwesome} name="plus" color="white" />} // Cor do ícone
+          color="white" // Cor do texto do botão
+          onPress={() => setIsModalVisible(true)} // Ação ao pressionar
+          mb={4} // Margem inferior
+          _pressed={{ bg: '#E68A00' }} // Cor ao pressionar (opcional, escurecer)
         >
           Criar Liga
         </Button>

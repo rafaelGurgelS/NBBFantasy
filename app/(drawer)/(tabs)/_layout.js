@@ -28,14 +28,14 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="(tabsLigas)"
+          name="ligas"
           options={{
             title: 'Ligas',
             tabBarIcon: ({ color }) => <Ionicons name="trophy-outline" color={color} size={24} />,
           }}
         />
         <Tabs.Screen
-          name="partidas"
+          name="partidas"s
           options={{
             title: 'Partidas',
             tabBarIcon: ({ color }) => <MaterialIcons name="sports-basketball" size={24} color={color} />,
