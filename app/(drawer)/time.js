@@ -28,16 +28,15 @@ export default function EditTeamScreen() {
 
   // Emblemas disponíveis
   const emblemData = [
-    { id: '1', name: 'Emblema 1' },
-    { id: '2', name: 'Emblema 2' },
-    { id: '3', name: 'Emblema 3' },
-    { id: '4', name: 'Emblema 4' },
-    { id: '5', name: 'Emblema 5' },
-    { id: '6', name: 'Emblema 6' },
-    { id: '7', name: 'Emblema 7' },
-    { id: '8', name: 'Emblema 8' },
-    { id: '9', name: 'Emblema 9' },
-    { id: '10', name: 'Emblema 10' },
+    { id: '1', name: 'Emblema 1', image: require('../../assets/images/emblems/icon_1.png') },
+    { id: '2', name: 'Emblema 2', image: require('../../assets/images/emblems/icon_2.png') },
+    { id: '3', name: 'Emblema 3', image: require('../../assets/images/emblems/icon_3.png') },
+    { id: '4', name: 'Emblema 4', image: require('../../assets/images/emblems/icon_4.png') },
+    { id: '5', name: 'Emblema 5', image: require('../../assets/images/emblems/icon_5.png') },
+    { id: '6', name: 'Emblema 6', image: require('../../assets/images/emblems/icon_6.png') },
+    { id: '7', name: 'Emblema 7', image: require('../../assets/images/emblems/icon_7.png') },
+    { id: '8', name: 'Emblema 8', image: require('../../assets/images/emblems/icon_8.png') },
+    { id: '9', name: 'Emblema 9', image: require('../../assets/images/emblems/icon_9.png') },
   ];
 
   // Buscar informações do usuário
@@ -167,18 +166,19 @@ export default function EditTeamScreen() {
                       borderColor={
                         localSelectedEmblem === item.id ? '#FC9904' : '#D9D9D9'
                       }
-                      borderWidth={1}
+                      borderWidth={2}
                       borderRadius="full"
                       m={2}
                       backgroundColor={
                         localSelectedEmblem === item.id ? '#FFFFFF' : 'transparent'
                       }
+                      alignItems="center"
                     >
-                      <Text
-                        color={localSelectedEmblem === item.id ? '#FC9904' : '#FFFFFF'}
-                      >
-                        {item.name}
-                      </Text>
+                      <ImageBackground
+                        source={item.image} // Renderiza a imagem do emblema
+                        style={styles.emblemImage} // Aqui o estilo será atualizado
+                        imageStyle={styles.emblemImageStyle} // Adicionando um estilo interno para bordas arredondadas
+                      />
                     </Box>
                   </TouchableOpacity>
                 )}
@@ -215,5 +215,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 45,
     left: 20,
+  },
+  emblemImage: {
+    width: 80,  
+    height: 80,
+  },
+
+  emblemImageStyle: {
+    borderRadius: 40,
   },
 });

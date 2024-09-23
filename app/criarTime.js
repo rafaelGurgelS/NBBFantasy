@@ -10,10 +10,26 @@ import {
   FlatList, 
   Box, 
   useToast,
+  Image,
 } from 'native-base';
 import { useRouter } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import GlobalContext from './globalcontext.js'; // Importe o contexto global
+
+
+// Dados dos emblemas
+const emblemData = [
+  { id: '1', name: 'Emblema 1', image: require('../assets/images/emblems/icon_1.png') },
+  { id: '2', name: 'Emblema 2', image: require('../assets/images/emblems/icon_2.png') },
+  { id: '3', name: 'Emblema 3', image: require('../assets/images/emblems/icon_3.png') },
+  { id: '4', name: 'Emblema 4', image: require('../assets/images/emblems/icon_4.png') },
+  { id: '5', name: 'Emblema 5', image: require('../assets/images/emblems/icon_5.png') },
+  { id: '6', name: 'Emblema 6', image: require('../assets/images/emblems/icon_6.png') },
+  { id: '7', name: 'Emblema 7', image: require('../assets/images/emblems/icon_7.png') },
+  { id: '8', name: 'Emblema 8', image: require('../assets/images/emblems/icon_8.png') },
+  { id: '9', name: 'Emblema 9', image: require('../assets/images/emblems/icon_9.png') },
+];
+
 
 export default function TeamCreationScreen() {
   const router = useRouter();
@@ -23,19 +39,6 @@ export default function TeamCreationScreen() {
   
   const [localTeamName, setLocalTeamName] = useState('');
   const [localSelectedEmblem, setLocalSelectedEmblem] = useState(null);
-
-  const emblemData = [
-    { id: '1', name: 'Emblema 1' },
-    { id: '2', name: 'Emblema 2' },
-    { id: '3', name: 'Emblema 3' },
-    { id: '4', name: 'Emblema 4' },
-    { id: '5', name: 'Emblema 5' },
-    { id: '6', name: 'Emblema 6' },
-    { id: '7', name: 'Emblema 7' },
-    { id: '8', name: 'Emblema 8' },
-    { id: '9', name: 'Emblema 9' },
-    { id: '10', name: 'Emblema 10' },
-  ];
 
   const handleEmblemSelect = (id) => {
     setLocalSelectedEmblem(id); // Muda a seleção localmente
@@ -128,8 +131,14 @@ export default function TeamCreationScreen() {
                 borderWidth={1}
                 borderRadius='full'
                 m={2}
+                alignItems="center"
               >
-                <Text>{item.name}</Text>
+                <Image
+                  source={item.image}
+                  alt={item.name}
+                  size="lg" // Defina um tamanho adequado para o emblema
+                  borderRadius="full"
+                />
               </Box>
             </TouchableOpacity>
           )}

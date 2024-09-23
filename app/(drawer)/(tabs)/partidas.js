@@ -6,6 +6,8 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import GlobalContext from '../../globalcontext';
 import io from 'socket.io-client';
 
+//o que está sendo chamado de rodada atual na verdade é a rodada "hoje" kk
+
 const PartidasScreen = () => {
   const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
   const [partidas, setPartidas] = useState([]);
@@ -35,7 +37,7 @@ const PartidasScreen = () => {
       fetchPartidas().then(() => {
         // Após fetchPartidas, garantir que rodadaAtual seja atualizado com base no valor recebido
         if (data.current_round_id && rodadaAtual !== data.current_round_id) {
-          setRodadaAtual(data.current_round_id);
+          setRodadaAtual(data.current_round_id-1);
         }
       });
     });
@@ -122,12 +124,8 @@ const PartidasScreen = () => {
 
   return (
     <VStack flex={1} justifyContent="center" alignItems="center" space={4} px={4}>
-      <Box width="100%" bg="#E78E8E" p={4} rounded="md" alignItems="center" mt={4}>
-        <HStack alignItems="center" space={2}>
-          <Icon as={MaterialIcons} name="access-time" color="white" size="sm" />
-          <Text color="white" fontSize="md">Tempo para próxima rodada: 00:00:00</Text>
-        </HStack>
-      </Box>
+      
+     
       {rodadaAtual !== null && (
         <>
           <HStack space={4} alignItems="center" mt={4}>
@@ -163,7 +161,9 @@ const PartidasScreen = () => {
                 <View key={index}>
                   <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
                     <Text flex={1} textAlign="right">{partida.time_casa}</Text>
-                    <Text flex={1} textAlign="center">{partida.placar_casa} x {partida.placar_visitante}</Text>
+                    <Text flex={1} textAlign="center">
+                      {rodadaAtual === rodadaHoje ? " x " : `${partida.placar_casa} x ${partida.placar_visitante}`}
+                    </Text>
                     <Text flex={1} textAlign="left">{partida.time_visitante}</Text>
                   </HStack>
                   {index < partidasPorRodada.length - 1 && (
@@ -174,7 +174,7 @@ const PartidasScreen = () => {
             </ScrollView>
           </Box>
           <Center mb={4}>
-            <Button onPress={handleRodadaHoje} bg="orange.400" _text={{ color: 'white' }} borderRadius="20px">Rodada Atual</Button>
+            <Button onPress={handleRodadaHoje} bg="orange.400" _text={{ color: 'white' }} borderRadius="20px">Rodada atual</Button>
           </Center>
         </>
       )}

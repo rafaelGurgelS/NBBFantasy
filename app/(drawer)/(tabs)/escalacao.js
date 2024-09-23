@@ -1,18 +1,13 @@
 import React, { useState, useEffect,useContext } from 'react';
-import { IconButton, FlatList, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image, Flex } from 'native-base';
+import { IconButton,ScrollView,View, FlatList, NativeBaseProvider, VStack, HStack, Box, Button, Text, Actionsheet, useDisclose, Image, Flex } from 'native-base';
 import { FontAwesome } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native-paper';
 import GlobalContext from '../../globalcontext';
 import io from 'socket.io-client';
 
-/*Errinho de lógica da rodada - tô passando a pontuação do jogador na fase de compra... isso nao era pra ser exibido nesse momento...
-é bom a gente tirar a pontuação e tem q criar 2 estados nessa tela - mercado abero e mercado fechado/ resultado da rodada.
-(então s.. td essa junção que eu fiz foi meio inútil, se bem q ja tendo essa info no item.pontuacao facilita pra exibir depois)
-Além disso, tava olhando o figma... tem muita tela pra fazer ainda */ 
-
 
 const EscalacaoScreen = () => {
-  const { userName, setuserName, ip, setIP, porta, setPorta } = useContext(GlobalContext);
+  const { userName, setuserName, ip, setIP, porta, setPorta, lineupComplete, setLineupComplete } = useContext(GlobalContext);
   const [rodadaAtual, setRodadaAtual] = useState(null);
   const [userMoney, setUserMoney] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclose();
@@ -21,17 +16,17 @@ const EscalacaoScreen = () => {
   const [error, setError] = useState(null);
 
   const [comprados, setComprados] = useState({
-    'Ala armador': null,
+    'Ala/Armador': null,
     'Armador': null,
     'Pivô': null,
-    'Ala pivô': null,
+    'Ala/Pivô': null,
     'Ala': null
   });
   const [disponiveis, setDisponiveis] = useState({
-    'Ala armador': [],
+    'Ala/Armador': [],
     'Armador': [],
     'Pivô': [],
-    'Ala pivô': [],
+    'Ala/Pivô': [],
     'Ala': [],
   });
 
@@ -60,9 +55,6 @@ const EscalacaoScreen = () => {
   }, [userName]);
 
 
-
-  
-  
 
   const fetchUserInfo = async () => {
     try {
@@ -113,10 +105,10 @@ const EscalacaoScreen = () => {
       const response = await fetch(`http://${ip}:${porta}/jogadores`);
       const data = await response.json();
       setDisponiveis({
-        'Ala armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
+        'Ala/Armador': data.filter(jogador => jogador.posicao === 'Ala/Armador'),
         'Armador': data.filter(jogador => jogador.posicao === 'Armador'),
         'Pivô': data.filter(jogador => jogador.posicao === 'Pivô'),
-        'Ala pivô': data.filter(jogador => jogador.posicao === 'Ala/Pivô'),
+        'Ala/Pivô': data.filter(jogador => jogador.posicao === 'Ala/Pivô'),
         'Ala': data.filter(jogador => jogador.posicao === 'Ala'),
       });
     } catch (error) {
@@ -239,6 +231,10 @@ const EscalacaoScreen = () => {
     } else {
       alert('Dinheiro insuficiente para comprar este jogador.');
     }
+
+    console.log('Data for selected position:', comprados[selectedPosition]);
+
+
   };
 
   const cancelPurchase = async (jogador) => {
@@ -273,18 +269,32 @@ const EscalacaoScreen = () => {
 
   const isComplete = Object.values(comprados).every(jogador => jogador !== null);
 
+
+  useEffect(() => {
+    setLineupComplete(isComplete);
+    console.log("Alterando status da escalação")
+  }, [isComplete]);
+
+
+  useEffect(() => {
+  if (selectedPosition) {
+    console.log('Selected Position:', selectedPosition);
+    console.log('Data for selected position:', comprados[selectedPosition]);
+  }
+  }, [selectedPosition, comprados]);
+
+
   function renderItem({ item }) {
     return (
-      <HStack justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
+      <HStack key={item.id} justifyContent="space-between" alignItems="center" w="100%" px={4} py={2}>
         <VStack>
           <Text bold>{item.nome}</Text>
-          <Text>Pontuação: {item.pontuacao.toFixed(2)}</Text>
           <Text>Valor: R${item.valor}</Text>
           <Text>Time: {item.time}</Text>
           <Text>Posição: {item.posicao}</Text>
         </VStack>
         {comprados[selectedPosition]?.id === item.id ? (
-          <HStack>
+          <HStack key={`comprado-${item.id}`}>
             <Text color="red.500">Comprado </Text>
             <Button colorScheme="red" borderRadius="20px" onPress={() => cancelPurchase(item)}>Cancelar</Button>
           </HStack>
@@ -293,13 +303,15 @@ const EscalacaoScreen = () => {
             bg="orange.400"
             onPress={() => buyPlayer(item)}
             borderRadius="20px"
+            key={`comprar-${item.id}`}
           >
-          Comprar
+            Comprar
           </Button>
         )}
       </HStack>
-    )
+    );
   }
+  
 
   const [listLoading, setListLoading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -310,6 +322,20 @@ const EscalacaoScreen = () => {
       setLoading(false);
     }, 1000);
   };
+
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  // Função para calcular o subset da lista baseado na página atual
+  const paginatedData = selectedPosition
+    ? disponiveis[selectedPosition].slice(0, page * pageSize)
+    : [];
+
+  // Verificar se existem mais jogadores para carregar
+  const hasMorePlayers = selectedPosition 
+    ? disponiveis[selectedPosition].length > paginatedData.length
+    : false;
+
 
   return (
     <NativeBaseProvider>
@@ -352,12 +378,12 @@ const EscalacaoScreen = () => {
                   height={16}
                   borderColor="orange.400"
                   borderWidth={2}
-                  icon={renderButtonIcon('Ala armador')}
-                  onPress={() => selectPosition('Ala armador')}
+                  icon={renderButtonIcon('Ala/Armador')}
+                  onPress={() => selectPosition('Ala/Armador')}
                   mb={2}
                 />
-                {comprados['Ala armador'] && <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
-                  {comprados['Ala armador'].nome}</Text>}
+                {comprados['Ala/Armador'] && <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
+                  {comprados['Ala/Armador'].nome}</Text>}
               </VStack>
               <VStack alignItems="center">
                 <IconButton
@@ -407,12 +433,12 @@ const EscalacaoScreen = () => {
                   height={16}
                   borderColor="orange.400"
                   borderWidth={2}
-                  icon={renderButtonIcon('Ala pivô')}
-                  onPress={() => selectPosition('Ala pivô')}
+                  icon={renderButtonIcon('Ala/Pivô')}
+                  onPress={() => selectPosition('Ala/Pivô')}
                   mb={2}
                 />
-                {comprados['Ala pivô'] && <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
-                  {comprados['Ala pivô'].nome}</Text>}
+                {comprados['Ala/Pivô'] && <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
+                  {comprados['Ala/Pivô'].nome}</Text>}
               </VStack>
               <VStack alignItems="center">
                 <IconButton
@@ -434,6 +460,8 @@ const EscalacaoScreen = () => {
           </VStack>
         </Box>
 
+        
+
         <Actionsheet isOpen={isOpen} onClose={onClose}>
           <Actionsheet.Content>
             <IconButton
@@ -443,16 +471,28 @@ const EscalacaoScreen = () => {
               onPress={onClose}
             />
             <Text fontSize="xl" mb={4}>Posição: {selectedPosition}</Text>
+
             {listLoading ? (
               <ActivityIndicator size="large" color="#FC9904" />
             ) : (
               <FlatList
-                data={selectedPosition ? disponiveis[selectedPosition] : []}
-                keyExtractor={(item, index) => item.id.toString()}
+                data={paginatedData}
+                keyExtractor={(item) => item.id.toString()}
                 renderItem={renderItem}
-                ListFooterComponent={!loading ? <ActivityIndicator size="large" color="#FC9904" /> : null}
-                onEndReached={handleEndReached}
-                onEndReachedThreshold={0.1}s
+                ListFooterComponent={
+                  !loading && hasMorePlayers ? (
+                    <Button 
+                      onPress={() => setPage((prevPage) => prevPage + 1)} 
+                      variant="outline"
+                      colorScheme="orange"
+                    >
+                      Carregar Mais
+                    </Button>
+                  ) : null
+                }
+                onEndReachedThreshold={0.1}
+                //initialNumToRender={10}
+                //windowSize={5}
               />
             )}
           </Actionsheet.Content>

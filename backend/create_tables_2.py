@@ -1,7 +1,9 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, ForeignKey, func
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship, backref
 from datetime import datetime
+
+
 
 # Configuração da URL do banco de dados
 url = URL.create(
@@ -28,8 +30,9 @@ class User(Base):
     password = Column(String(100), nullable=False)
     money = Column(Float, nullable=False)  
 
-    scores = relationship("UserHasScore")
+    scores = relationship("UserHasScore", backref="user", cascade="all, delete-orphan")
     fantasy_team = relationship('FantasyTeam', backref='user', cascade='all, delete-orphan', uselist=False)
+    leagues = relationship("LeagueMembership", backref="user", cascade="all, delete-orphan")
     
 
 class FantasyTeam(Base):
@@ -41,7 +44,7 @@ class FantasyTeam(Base):
     username = Column(String(50), ForeignKey('Users.username', ondelete='CASCADE'), nullable=False)
 
     # Relacionamento com a tabela lineup
-    lineup = relationship("Lineup")
+    lineup = relationship("Lineup", backref="team", cascade="all, delete-orphan")
 
  
 class Player(Base):
@@ -115,7 +118,7 @@ class UserHasScore(Base):
     __tablename__ = 'UsersScores'
 
 
-    user_id = Column(String(50),ForeignKey('Users.username'),primary_key=True, nullable=False)
+    user_id = Column(String(50), ForeignKey('Users.username', ondelete='CASCADE'), primary_key=True, nullable=False)
     round_id = Column(Integer,ForeignKey('Rounds.id'),primary_key=True, nullable=False)
     score = Column(Float, nullable=False)
 
@@ -130,6 +133,27 @@ class PlayerScore(Base):
     
     player = relationship("Player", backref="scores")  
     round = relationship("Round", backref="player_scores") 
+
+
+class League(Base):
+    __tablename__ = 'Leagues'
+
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    name = Column(String(100), nullable=False)
+    description = Column(String(255), nullable=True)
+
+    # Relacionamento com a tabela LeagueMembership
+    members = relationship("LeagueMembership", backref="league")
+
+class LeagueMembership(Base):
+    __tablename__ = 'LeagueMemberships'
+
+    league_id = Column(Integer, ForeignKey('Leagues.id'), primary_key=True, nullable=False)
+    user_id = Column(String(50), ForeignKey('Users.username', ondelete='CASCADE'), primary_key=True, nullable=False)
+
+    
+
+
 
 # Adiciona a nova tabela no banco de dados
 Base.metadata.create_all(engine)
