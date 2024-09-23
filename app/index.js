@@ -1,4 +1,4 @@
-import React, { useState, useContext} from "react";
+import React, { useState, useContext,useEffect } from "react";
 import {
   NativeBaseProvider,
   VStack,
@@ -14,12 +14,25 @@ import {
 } from "native-base";
 import { useRouter, Link } from "expo-router";
 import GlobalContext from './globalcontext.js'; 
+import { useFonts } from 'expo-font';
+import * as Font from "expo-font";
 
 export default function Home() {
   const router = useRouter();
   const toast = useToast();
 
   const { userName, setuserName, ip, setIP, porta, setPorta, senha, setSenha } = useContext(GlobalContext); // Usa o contexto global
+  
+  const [fontsLoaded] = useFonts({
+    //   ../../../assets/images/quadra_nova.jpg
+    //  C:\Users\clien\Documents\comp_movel_projetos\NBBFantasy\assets\fonts\Lacquer-Regular.ttf
+    'Lacquer-Regular': require('../assets/fonts/Lacquer-Regular.ttf'),
+  });
+
+
+  if (!fontsLoaded) {
+    return ;
+  }
   
   const handleLogin = async () => {
     if (!userName || !senha) {
@@ -74,9 +87,10 @@ export default function Home() {
     <NativeBaseProvider>
       <Center flex={1}>
         <VStack width="90%" space={4} alignItems="center" mt={-160}>
-          <Heading size="xl" mb={10}>
-            NBB FANTASY
-          </Heading>
+        <Text fontSize="4xl" mb={10} style={{ fontFamily: 'Lacquer-Regular' }} >
+          NBB FANTASY
+        </Text>
+
 
           <Input
             placeholder="Nome de usuário"

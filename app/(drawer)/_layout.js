@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Drawer } from 'expo-router/drawer';
 import { useNavigationState } from '@react-navigation/native';
+import * as Font from 'expo-font';
+import { useFonts } from 'expo-font'; // Import para carregar a fonte
+import AppLoading from 'expo-app-loading'; // Para tela de carregamento enquanto a fonte é carregada
 
 const routeTitles = {
   home: 'Home',
@@ -16,6 +19,18 @@ const routeTitles = {
 export default function DrawerLayout() {
   const [headerTitle, setHeaderTitle] = useState('Home'); // Define "Home" como título inicial
   const state = useNavigationState((state) => state);
+
+  // Carregar a fonte Lacquer
+  const [fontsLoaded] = useFonts({
+    //   ../../../assets/images/quadra_nova.jpg
+    //  C:\Users\clien\Documents\comp_movel_projetos\NBBFantasy\assets\fonts\Lacquer-Regular.ttf
+    'Lacquer-Regular': require('../../assets/fonts/Lacquer-Regular.ttf'),
+  });
+
+  // Verificar se as fontes estão carregadas, se não, mostrar tela de carregamento
+  /*if (!fontsLoaded) {
+    return <AppLoading />;
+  }*/
 
   useEffect(() => {
     const findActiveRoute = (state) => {
@@ -44,6 +59,10 @@ export default function DrawerLayout() {
         headerStyle: {
           borderBottomWidth: 2,
           borderBottomColor: '#FC9904',
+        },
+        // Aplicar a fonte Lacquer ao headerTitle
+        headerTitleStyle: {
+          fontFamily: 'Lacquer-Regular', // Aplica a fonte Lacquer
         },
       }}
     >
