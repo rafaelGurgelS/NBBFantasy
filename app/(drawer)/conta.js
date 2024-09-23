@@ -171,8 +171,8 @@ export default function Conta() {
             <Icon as={MaterialIcons} name="arrow-back" size={10} color="#FFFFFF" />
           </TouchableOpacity>
 
-          <Heading size="lg" color="#FFFFFF" mb={4}  style={{ fontFamily: 'Lacquer-Regular' }}>
-            SUA CONTA NBB FANTASY!
+          <Heading size="lg" color="#FFFFFF" mb={4} >
+            <Text style={{ fontFamily: 'Lacquer-Regular' }}> SUA CONTA NBB FANTASY! </Text>
           </Heading>
 
           <View style={styles.textContainer}>

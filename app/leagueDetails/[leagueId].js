@@ -168,7 +168,7 @@ const LeagueDetails = () => {
                 Nenhuma descrição disponível.
               </Text>
             </Box>
-          )}y
+          )}
 
           {/* Lista de membros em estilo tabela */}
           <Box bg="coolGray.100" p={5} rounded="md" shadow={2}>

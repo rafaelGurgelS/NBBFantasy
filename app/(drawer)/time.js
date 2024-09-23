@@ -135,7 +135,7 @@ export default function EditTeamScreen() {
           </TouchableOpacity>
 
           <Heading size="lg" color="#FFFFFF" mb={4}>
-            SUA EQUIPE DE BASQUETE!
+            <Text style={{ fontFamily: 'Lacquer-Regular' }}> SUA EQUIPE DE BASQUETE! </Text>
           </Heading>
 
           {loading ? (
@@ -145,13 +145,13 @@ export default function EditTeamScreen() {
           ) : (
             <>
               <View style={styles.textContainer}>
-                <Text fontSize={25} color="#FFFFFF" textAlign="left">
+                <Text fontSize={25} color="#FFFFFF" textAlign="left" style={{ fontFamily: 'Lacquer-Regular' }}>
                   Nome: {userInfo?.fantasy_team || 'N/A'}
                 </Text>
               </View>
 
               <View style={styles.textContainer}>
-                <Text fontSize={25} color="#FFFFFF" textAlign="left">
+                <Text fontSize={25} color="#FFFFFF" textAlign="left" style={{ fontFamily: 'Lacquer-Regular' }}>
                   Emblema:
                 </Text>
               </View>

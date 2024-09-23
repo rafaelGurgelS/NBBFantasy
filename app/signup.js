@@ -14,12 +14,24 @@ import {
 } from "native-base";
 import { useRouter } from "expo-router";
 import GlobalContext from './globalcontext.js'; // Importe o contexto global
+import { useFonts } from 'expo-font';
 
 export default function Home() {
   const router = useRouter();
   const { userName, setuserName, ip, setIP, porta, setPorta, senha, setSenha } = useContext(GlobalContext);
   const [senha2, setSenha2] = useState("");
   const toast = useToast();
+
+  const [fontsLoaded] = useFonts({
+    //   ../../../assets/images/quadra_nova.jpg
+    //  C:\Users\clien\Documents\comp_movel_projetos\NBBFantasy\assets\fonts\Lacquer-Regular.ttf
+    'Lacquer-Regular': require('../assets/fonts/Lacquer-Regular.ttf'),
+  });
+
+
+  if (!fontsLoaded) {
+    return ;
+  }
 
   const handleLogin  = async() => {
     if (!userName || !senha) {
@@ -108,8 +120,8 @@ export default function Home() {
     <NativeBaseProvider>
       <Center flex={1}>
         <VStack width="90%" space={4} alignItems="center" mt={-160}>
-          <Heading size="xl" mb={10}>
-            CRIE SUA CONTA
+          <Heading size="xl" mb={10} >
+            <Text style={{ fontFamily: 'Lacquer-Regular' }}>CRIE SUA CONTA</Text>
           </Heading>
 
           <Text> Insira seu nome de usuário:</Text>
@@ -125,6 +137,11 @@ export default function Home() {
             fontSize={16}
             value={userName}
             onChangeText={(text) => setuserName(text)}
+            borderColor="transparent" 
+            _focus={{
+              borderColor: "#FC9904", 
+              borderWidth: 2 
+            }}
           />
 
           <Text> Insira uma senha:</Text>
@@ -141,6 +158,11 @@ export default function Home() {
             secureTextEntry
             value={senha}
             onChangeText={(text) => setSenha(text)}
+            borderColor="transparent" 
+            _focus={{
+              borderColor: "#FC9904", 
+              borderWidth: 2 
+            }}
           />
 
             <Text>Senhas de no mínimo 8 caracteres</Text>
@@ -160,6 +182,11 @@ export default function Home() {
             secureTextEntry
             value={senha2}
             onChangeText={(text) => setSenha2(text)}
+            borderColor="transparent" 
+            _focus={{
+              borderColor: "#FC9904", 
+              borderWidth: 2 
+            }}
             />  
 
 

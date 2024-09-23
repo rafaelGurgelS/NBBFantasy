@@ -181,7 +181,7 @@ def insert_usuario():
     senha = data.get('senha')
     
     # Criar novo usuário
-    novo_usuario = db.User(username=username, password=senha, money=400.0)
+    novo_usuario = db.User(username=username, password=senha, money=600.0)
     
 
     try:
