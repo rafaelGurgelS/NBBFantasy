@@ -103,7 +103,8 @@ export default function HomeScreen() {
         />
         <Box
           mt={-10}
-          backgroundColor='orange.400'
+          //backgroundColor="rgba(200, 200, 200, 1)"
+          backgroundColor="gray.200"
           borderRadius={10}
           opacity={0.9}
           width="75%"

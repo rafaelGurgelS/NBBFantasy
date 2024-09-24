@@ -181,7 +181,7 @@ def insert_usuario():
     senha = data.get('senha')
     
     # Criar novo usuário
-    novo_usuario = db.User(username=username, password=senha, money=600.0)
+    novo_usuario = db.User(username=username, password=senha, money=900.0)
     
 
     try:
@@ -865,7 +865,7 @@ def update_all_lineups(previous_round_id, current_round_id,session):
 
 scheduler.add_job(
     func=update_round,
-    trigger=IntervalTrigger(seconds=60),
+    trigger=IntervalTrigger(seconds=240),
 
 )
 
