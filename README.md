@@ -6,7 +6,7 @@ The data from players was fetched from this repository(https://github.com/vmussa
 
 # How to use
 
-##Install dependencies by checking package.json file
+## Install dependencies by checking package.json file
 
 
 
@@ -41,9 +41,29 @@ python create_tables.py
 ```
 python uploading_data.py
  ```
-## Database
+## Backend server
 
-## Executar o projeto Expo
+```
+python server.py
+ ```
 
-```npx expo start```
+## IP address
 
+Navigate to app\globalcontext.js and put the addres of your flask server.
+
+```
+cd app
+
+ ```
+
+```
+const [ip, setIP] = useState(' ');
+
+ ```
+## Run the project
+
+This will generate an QR Code and you can read it with your Expo app of your smartphone.
+```
+npx expo start
+
+ ```
