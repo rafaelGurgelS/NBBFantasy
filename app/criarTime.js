@@ -109,7 +109,7 @@ export default function TeamCreationScreen() {
     <Center flex={1}>
       <VStack width="90%" space={5} alignItems="center" mt={-50}>
         <Heading size="xl" mb={10} textAlign="center">
-          CRIE A SUA EQUIPE DE BASQUETE!
+          <Text style={{ fontFamily: 'Lacquer-Regular' }}>CRIE A SUA EQUIPE DE BASQUETE!</Text>
         </Heading>
 
         
@@ -155,6 +155,11 @@ export default function TeamCreationScreen() {
           fontSize={16}
           value={localTeamName}
           onChangeText={setLocalTeamName}
+          borderColor="transparent" 
+          _focus={{
+            borderColor: "#FC9904", 
+            borderWidth: 2 
+          }}
         />
 
 

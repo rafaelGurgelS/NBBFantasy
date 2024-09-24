@@ -4,6 +4,9 @@ import { FontAwesome } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native-paper';
 import GlobalContext from '../../globalcontext';
 import io from 'socket.io-client';
+import { LogBox } from 'react-native';
+
+LogBox.ignoreAllLogs(); // Isso desativa todos os warnings
 
 
 const EscalacaoScreen = () => {
