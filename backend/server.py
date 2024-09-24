@@ -4,7 +4,7 @@ from flask import Flask, jsonify,request
 from datetime import datetime
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
-import create_tables_2 as db
+import backend.create_tables as db
 from sqlalchemy.engine import URL
 from flask_socketio import SocketIO, emit
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -871,7 +871,7 @@ scheduler.add_job(
 
 scheduler.add_job(
     func=send_round,
-    trigger=IntervalTrigger(seconds=10),  ## no pior caso, tem que esperar 30s... mas se fosse muio alta a frequência tenho medo de sobrecarregar
+    trigger=IntervalTrigger(seconds=10), 
 
 )
 

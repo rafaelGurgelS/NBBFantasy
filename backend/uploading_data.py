@@ -3,8 +3,8 @@ import pandas as pd
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from create_tables_2 import Player, Round,Action,Match
-import create_tables_2 as db
+from backend.create_tables import Player, Round,Action,Match
+import backend.create_tables as db
 from sqlalchemy.engine import URL
 import numpy as np
 # Configuração da URL do banco de dados
