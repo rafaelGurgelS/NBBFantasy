@@ -11,7 +11,7 @@ url = URL.create(
     username="postgres",
     host="localhost",
     database="nbb",
-    password="admin",
+    password=" ",
     port="5432"
 )
 
